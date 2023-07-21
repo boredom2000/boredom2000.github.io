@@ -5,6 +5,8 @@ console.log("body=" + body);
 
 let currentSelection = null;
 
+const socket = io();
+
 class MovableDiv
 {
     constructor(x, y, color)

@@ -1,0 +1,14 @@
+{
+    "food":
+    {
+        "name":"Food"
+    },
+    "wood":
+    {
+        "name":"Wood"
+    },
+    "tool":
+    {
+        "name":"Tool"
+    }
+}

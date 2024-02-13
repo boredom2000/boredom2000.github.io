@@ -41,6 +41,7 @@ class GamePlayer
     }
 }
 
+var hitTime = 0.0;
 var timeBeforeNextCheck = 0.0;
 var timeBeforeNextRound = 0.0;
 var waitingForNextRound = false;
@@ -114,6 +115,8 @@ function updateGameState(time)
         playerHits[nextHitIndex] = time / 1000.0;
         playerHits[nextHitIndex+1] = player.position[0];
         playerHits[nextHitIndex+2] = player.position[1];
+
+        hitTime = time / 1000.0;
 
         nextHitIndex = (nextHitIndex + 3) % 24;
     }

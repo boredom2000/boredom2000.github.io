@@ -297,7 +297,7 @@ function movementAndColorDemo() {
     gl.uniform2f(uniformPositionPlayerSize, player.size[0], player.size[1]);
     gl.uniform2f(uniformPositionBallPosition, ball.position[0], ball.position[1]);
     gl.uniform2f(uniformPositionBallSize, ball.size[0], ball.size[1]);
-    gl.uniform1f(uniformPositionLastHitTime, -9999.0);
+    gl.uniform1f(uniformPositionLastHitTime, hitTime);
     gl.uniform3fv(uniformPositionBallHits, ballHits);
     gl.uniform3fv(uniformPositionPlayerHits, playerHits);
     gl.bindVertexArray(squareVao);

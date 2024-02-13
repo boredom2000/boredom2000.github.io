@@ -32,7 +32,23 @@ vec3 palette( float t ) {
     vec3 c = vec3(1.0, 1.0, 1.0);
     vec3 d = vec3(0.263,0.416,0.557);
 
+
+    //return c;
     return a + b*cos( 6.28318*(c*t+d) );
+}
+
+vec3 explosionRing(vec2 uv, vec2 explosionPosition, vec2 playerPosition, vec2 size, float time, float timeExplosion)
+{
+    float distanceFromExplosion = distance(explosionPosition, uv);
+    float timeSinceHit = (time - timeExplosion);
+    float explosionRadius = timeSinceHit;
+    float explosionThickness = clamp(0.0, 1.0, (smoothstep(0.0, 0.05, timeSinceHit) - smoothstep(0.5, 2.5, timeSinceHit)) * 1.0);
+    float explosion = smoothstep(size.x + explosionRadius - explosionThickness, size.x + explosionRadius, distanceFromExplosion) - smoothstep(size.x + explosionRadius, size.x + explosionRadius + explosionThickness, distanceFromExplosion);
+
+    explosion = pow(0.1 / (1.0 - explosion), 1.2) * explosion; //smoothstepping glowy
+    vec3 col = palette(length(playerPosition) + 2.0*.4 - time*0.3);
+
+    return explosion * col;
 }
 
 void main() {
@@ -40,6 +56,8 @@ void main() {
     vec2 uv0 = fragmentUV - uPlayerPosition;
     vec3 finalColor = vec3(0.0);
 
+    float lastHitTime = uTime - uLastHitTime;
+    float flash = smoothstep(0.0, 0.2, lastHitTime) - smoothstep(0.2, 1.0, lastHitTime);
 
     float distanceFromCursor = distance(uPlayerPosition.xy, fragmentUV.xy);
     float fractDistance = fract(distanceFromCursor * 5.0 - uTime * 0.2);
@@ -72,7 +90,7 @@ void main() {
         //border = sin(border*8. + uTime)/8.; //alternating from -1 to 1
         //border = abs(border); //alternating from 0 to 1
         grid = pow(0.02 / (1.0 - grid), 1.2); //smoothstepping glowy
-        vec3 col = palette(length(uv0+uPlayerPosition*0.15) + 4.0*.4 - uTime*0.3); //color
+        vec3 col = palette(uv0.x+uPlayerPosition.x*0.15 + 4.0*.4 - uTime*0.13); //color
 
         finalColor += grid * col;
     }
@@ -86,13 +104,34 @@ void main() {
 
         //border = sin(border*8. + uTime)/8.; //alternating from -1 to 1
         //border = abs(border); //alternating from 0 to 1
-        grid = pow(0.01 / (1.0 - grid), 1.2); //smoothstepping glowy
-        vec3 col = palette(length(uv0+uPlayerPosition*0.075) + 4.0*.4 - uTime*0.3); //color
+        grid = pow(0.03 / (1.0 - grid), 1.2); //smoothstepping glowy
+        vec3 col = palette(length(uv0.y+uPlayerPosition.y*0.075) + 4.0*.4 - uTime*0.1); //color
 
         finalColor += grid * col;
     }
     
+    ///////EXPLOSION
+    {
+        for (int i = 0; i<8; i++)
+        {
+            {
+                //explosionRing(vec2 uv, vec2 explosionPosition, vec2 playerPosition, vec2 size, float time, float timeExplosion)
+                finalColor += explosionRing(fragmentUV, uPlayerHits[i].yz, uv0, uPlayerSize, uTime, uPlayerHits[i].x);
+            }
 
+            {
+                //float distanceFromBall = distance(uBallHits[i].yz, fragmentUV.xy);
+                //float distance = (uTime - uBallHits[i].x) * 0.9;
+                //float ball = smoothstep(distance - 0.5, distance, distanceFromBall) - smoothstep(distance, distance + 0.5, distanceFromBall);
+    
+                //ball = pow(0.05 / (1.0 - ball), 1.2) * ball; //smoothstepping glowy
+                //vec3 col = palette(length(uv0) + 3.0*.4 - uTime*0.5); //color
+        
+                //finalColor += ball * col;
+            }
+
+        }
+    }
 
 
     //////////////BALL
@@ -106,36 +145,22 @@ void main() {
         vec3 col = palette(length(uv0) + 4.0*.4 - uTime*0.4); //color
 
         finalColor += ball * col;
+        finalColor = clamp(finalColor, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
+
+        float black = smoothstep(uBallSize.x, uBallSize.x+ 0.02, distanceFromBall);
+        finalColor = finalColor * vec3(black, black, black);
+
+        float insideColor = smoothstep(0.0, uBallSize.x+ 0.02, distanceFromBall);
+        float distanceFromRotating = distance(uBallPosition.xy + vec2(sin(uTime * 3.0), cos(uTime * 3.0)) * uBallSize.x, fragmentUV.xy);
+
+        float mask = 1.0 - black;
+
+        vec3 addedColor = mix(palette(abs(sin(distanceFromRotating * 20.0 + uTime * 2.0))), vec3(1.0, 1.0, 1.0), flash);
+
+        finalColor += addedColor * mask;
     }
 
-    ///////EXPLOSION
-    {
-        for (int i = 0; i<8; i++)
-        {
-            {
-                float distanceFromPlayer = distance(uPlayerHits[i].yz, fragmentUV.xy);
-                float distance = (uTime - uPlayerHits[i].x) * 0.6;
-                float player = smoothstep(distance - 0.3, distance, distanceFromPlayer) - smoothstep(distance, distance + 0.3, distanceFromPlayer);
 
-                player = pow(0.1 / (1.0 - player), 1.2) * player; //smoothstepping glowy
-                vec3 col = palette(length(uv0) + 2.0*.4 - uTime*0.15); //color
-        
-                finalColor += player * col;
-            }
-
-            {
-                float distanceFromBall = distance(uBallHits[i].yz, fragmentUV.xy);
-                float distance = (uTime - uBallHits[i].x) * 0.9;
-                float ball = smoothstep(distance - 0.5, distance, distanceFromBall) - smoothstep(distance, distance + 0.5, distanceFromBall);
-    
-                ball = pow(0.05 / (1.0 - ball), 1.2) * ball; //smoothstepping glowy
-                vec3 col = palette(length(uv0) + 3.0*.4 - uTime*0.35); //color
-        
-                finalColor += ball * col;
-            }
-
-        }
-    }
 
     //////////////PLAYER
     {
@@ -148,13 +173,20 @@ void main() {
         vec3 col = palette(length(uv0) + 5.0*.4 - uTime*0.15); //color
 
         finalColor += player * col;
-
         finalColor = clamp(finalColor, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
 
         float black = smoothstep(uPlayerSize.x, uPlayerSize.x+ 0.02, distanceFromPlayer);
         finalColor = finalColor * vec3(black, black, black);
+
+        float insideColor = smoothstep(0.0, uPlayerSize.x+ 0.02, distanceFromPlayer);
+        float distanceFromRotating = distance(uPlayerPosition.xy + vec2(sin(uTime * 3.0), cos(uTime * 3.0)) * uPlayerSize.x, fragmentUV.xy);
+        float mask = 1.0 - black;
+
+        vec3 addedColor = mix(palette(abs(sin(distanceFromRotating * 20.0 + uTime * 2.0))), vec3(1.0, 1.0, 1.0), flash);
+
+        finalColor += addedColor * mask;
     }
-        
+    
     outputColor = vec4(finalColor, dummy1);
 
 }`;

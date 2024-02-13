@@ -16,12 +16,12 @@ precision mediump float;
 uniform vec2 uCanvasSize;
 uniform vec2 uPlayerPosition;
 uniform vec2 uPlayerSize;
-uniform float uTime;
+uniform highp float uTime;
 uniform vec2 uBallPosition;
 uniform vec2 uBallSize;
-uniform float uLastHitTime;
-uniform vec3 uBallHits[8];
-uniform vec3 uPlayerHits[8];
+uniform highp float uLastHitTime;
+uniform highp vec3 uBallHits[8];
+uniform highp vec3 uPlayerHits[8];
 
 in vec2 fragmentUV;
 out vec4 outputColor;

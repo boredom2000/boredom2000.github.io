@@ -36,7 +36,6 @@ function loadTexture(gl, url) {
 
     let loadedImageCallback = function ()
     {
-        console.log('asdasdasdas');
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(
             gl.TEXTURE_2D,
@@ -63,10 +62,10 @@ function loadTexture(gl, url) {
     };
 
     var img = new Image();
-    img.src = 'cubetexture.png';
+    img.crossOrigin = "";
+    img.src = 'https://boredom2000.github.io/webgl/cubetexture.png';
     img.onload = function()
     {
-        console.log('fuck you');
         loadedImageCallback();
     }
 

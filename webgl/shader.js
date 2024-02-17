@@ -22,6 +22,7 @@ uniform vec2 uBallSize;
 uniform highp float uLastHitTime;
 uniform highp vec3 uBallHits[8];
 uniform highp vec3 uPlayerHits[8];
+uniform sampler2D uSampler;
 
 in vec2 fragmentUV;
 out vec4 outputColor;
@@ -186,7 +187,9 @@ void main() {
 
         finalColor += addedColor * mask;
     }
+
+    vec4 sampledColor = texture(uSampler, fragmentUV);
     
-    outputColor = vec4(finalColor, dummy1);
+    outputColor = mix( vec4(finalColor, dummy1), sampledColor, 0.5);
 
 }`;

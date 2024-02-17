@@ -155,7 +155,13 @@ function movementAndColorDemo() {
     showError(`Failed to get attribute locations: (pos=${vertexPositionAttributeLocation},`
       + ` color=${vertexUVAttributeLocation})`);
     return;
-  }
+  } 
+
+
+    // Load texture
+  const texture = loadTexture(gl, "cubetexture.png");
+  // Flip image pixels into the bottom-to-top order that WebGL expects.
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
   // Get uniform locations
   const uniformPositionPlayerPos = gl.getUniformLocation(movementAndColorProgram, 'uPlayerPosition');
@@ -167,6 +173,7 @@ function movementAndColorDemo() {
   const uniformPositionLastHitTime = gl.getUniformLocation(movementAndColorProgram, 'uLastHitTime');
   const uniformPositionBallHits = gl.getUniformLocation(movementAndColorProgram, 'uBallHits');
   const uniformPositionPlayerHits = gl.getUniformLocation(movementAndColorProgram, 'uPlayerHits');
+  const uniformPositionSampler = gl.getUniformLocation(movementAndColorProgram, 'uSampler');
   if (uniformPositionPlayerPos === null || uniformPositionPlayerSize === null || uniformPositionTime === null || uniformPositionCanvasSize === null
     || uniformPositionBallPosition === null || uniformPositionBallSize === null ||
     uniformPositionLastHitTime === null || uniformPositionBallHits === null || uniformPositionPlayerHits === null) {
@@ -178,7 +185,8 @@ function movementAndColorDemo() {
      + `, uBallSize=${!!uniformPositionBallSize}`
      + `, uLastHitTime=${!!uniformPositionLastHitTime}`
      + `, uBallHits=${!!uniformPositionBallHits}`
-     + `, uPlayerHits=${!!uniformPositionPlayerHits})`);
+     + `, uPlayerHits=${!!uniformPositionPlayerHits}`
+     + `, uniformPositionSampler=${!!uniformPositionSampler})`);
     return;
   }
 
@@ -300,6 +308,16 @@ function movementAndColorDemo() {
     gl.uniform1f(uniformPositionLastHitTime, hitTime);
     gl.uniform3fv(uniformPositionBallHits, ballHits);
     gl.uniform3fv(uniformPositionPlayerHits, playerHits);
+
+    // Tell WebGL we want to affect texture unit 0
+    gl.activeTexture(gl.TEXTURE0);
+
+    // Bind the texture to texture unit 0
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    // Tell the shader we bound the texture to texture unit 0
+    gl.uniform1i(uniformPositionSampler, 0);
+
     gl.bindVertexArray(squareVao);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 

@@ -41,6 +41,7 @@ class GamePlayer
     }
 }
 
+var currentNumberOfHits = 0;
 var hitTime = 0.0;
 var timeBeforeNextCheck = 0.0;
 var timeBeforeNextRound = 0.0;
@@ -86,6 +87,8 @@ function updateGameState(time)
         ball = null;
         ball = new GameBall([0.0, 0.0], [0.05, -1.5], [0.0, 1.0], [0.1, 0.1]);
         waitingForNextRound = false;
+        currentNumberOfHits = 0;
+        createTextTexture(gl, getTailingZeroNumber(currentNumberOfHits));
     }
 
     if (ball.position[1] > 1.0)
@@ -119,6 +122,21 @@ function updateGameState(time)
         hitTime = time / 1000.0;
 
         nextHitIndex = (nextHitIndex + 3) % 24;
+
+        currentNumberOfHits++;
+        createTextTexture(gl, getTailingZeroNumber(currentNumberOfHits));
+
     }
 }
 
+function getTailingZeroNumber(num)
+{
+    if (num >= 10)
+    {
+        return '' + num;
+    }
+    else
+    {
+        return '0' + num;
+    }
+}

@@ -117,18 +117,7 @@ void main() {
         {
             {
                 //explosionRing(vec2 uv, vec2 explosionPosition, vec2 playerPosition, vec2 size, float time, float timeExplosion)
-                finalColor += explosionRing(fragmentUV, uPlayerHits[i].yz, uv0, uPlayerSize, uTime, uPlayerHits[i].x);
-            }
-
-            {
-                //float distanceFromBall = distance(uBallHits[i].yz, fragmentUV.xy);
-                //float distance = (uTime - uBallHits[i].x) * 0.9;
-                //float ball = smoothstep(distance - 0.5, distance, distanceFromBall) - smoothstep(distance, distance + 0.5, distanceFromBall);
-    
-                //ball = pow(0.05 / (1.0 - ball), 1.2) * ball; //smoothstepping glowy
-                //vec3 col = palette(length(uv0) + 3.0*.4 - uTime*0.5); //color
-        
-                //finalColor += ball * col;
+                finalColor += explosionRing(fragmentUV, uPlayerHits[i].yz, fragmentUV - uPlayerHits[i].yz, uPlayerSize, uTime, uPlayerHits[i].x);
             }
 
         }
@@ -188,8 +177,35 @@ void main() {
         finalColor += addedColor * mask;
     }
 
-    vec4 sampledColor = texture(uSampler, fragmentUV);
+    //////////////TEXT
+    {
+        float flashScale = flash * 0.2;
+        float textUvX = smoothstep(-0.5 - flashScale, 0.5 + flashScale, fragmentUV.x);
+        float textUvY = smoothstep(-1.0 - flashScale, 0.0 + flashScale, fragmentUV.y);
+        vec4 sampledColor = texture(uSampler, vec2(textUvX, textUvY));
+
+        float distanceFromPlayer = sampledColor.g;
+        float player = smoothstep(0.85, 0.92, distanceFromPlayer);
+        player = max(distanceFromPlayer, player);
+
+        player = pow(0.2 / (1.0 - player), 1.2); //smoothstepping glowy
+        player = clamp(player, 0.0, 1.0);
+        vec3 col = mix( palette(length(uv0) + 5.0*.4 - uTime*0.15), vec3(1.0, 1.0, 1.0), flash); //color
+
+        finalColor += player * col;
+        finalColor = clamp(finalColor, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
+
+        float white = smoothstep(0.85, 0.92, distanceFromPlayer) - smoothstep(0.95, 1.0, distanceFromPlayer);
+        col = palette(length(uv0) + 5.0*.4 - uTime*0.2); //color
+        finalColor += white * col * 1.3;
+
+
+
+        //float mask = smoothstep(0.92, 1.0, distanceFromPlayer);
+        //float black = 1.0 - mask *0.8;
+        //finalColor = finalColor * vec3(black, black, black);
+    }
     
-    outputColor = mix( vec4(finalColor, dummy1), sampledColor, 0.5);
+    outputColor = vec4(finalColor, dummy1);
 
 }`;

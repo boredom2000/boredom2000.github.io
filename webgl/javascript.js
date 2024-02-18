@@ -127,10 +127,10 @@ function getRandomInRange(min, max) {
 // DEMO
 //
 function movementAndColorDemo() {
-  const canvas = document.getElementById('demo-canvas');
+  canvas = document.getElementById('demo-canvas');
   if (!canvas || !(canvas instanceof HTMLCanvasElement)) throw new Error('Failed to get demo canvas reference');
 
-  const gl = getContext(canvas);
+  gl = getContext(canvas);
 
   const squareGeoBuffer = createStaticVertexBuffer(gl, squarePositions);
   const squareUvBuffer = createStaticVertexBuffer(gl, squareUVs);
@@ -160,8 +160,10 @@ function movementAndColorDemo() {
 
     // Load texture
   const texture = loadTexture(gl, "cubetexture.png");
+  createTextTexture(gl, "00");
+  let targetTexture;
   // Flip image pixels into the bottom-to-top order that WebGL expects.
-  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
   // Get uniform locations
   const uniformPositionPlayerPos = gl.getUniformLocation(movementAndColorProgram, 'uPlayerPosition');
@@ -202,6 +204,8 @@ function movementAndColorDemo() {
   }
 
   var uvTop, uvLeft, uvBottom, uvRight, uvWidth, uvHeight;
+  let fb;
+
   const playAreaWidth = 1.0;
   const playAreaHeight = 2.0;
 
@@ -251,14 +255,25 @@ function movementAndColorDemo() {
       vertexUVAttributeLocation, 2, gl.FLOAT, true, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindVertexArray(null);
+
+    targetTexture = createBufferTexture(gl, canvas.width, canvas.height);
+
+    // Create and bind the framebuffer
+    fb = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+
+    // attach the texture as the first color attachment
+    const attachmentPoint = gl.COLOR_ATTACHMENT0;
+    const level = 0;
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, targetTexture, level);
   }
 
   window.addEventListener('resize', updatePlayArea, true);
-  updatePlayArea()
-
+  updatePlayArea();
 
   document.addEventListener("touchmove", process_touchmove, false);
 
+  var mousePos = [0.0, 0.0];
   function process_touchmove(evt)
   {
     var rect = canvas.getBoundingClientRect();
@@ -271,8 +286,7 @@ function movementAndColorDemo() {
     var rect = canvas.getBoundingClientRect();
     mousePos = [uvLeft + (event.pageX - rect.left)  / canvas.width * uvWidth, uvTop + (event.pageY - rect.top) / canvas.height * uvHeight];
   }
-
-  var mousePos = [0.0, 0.0];
+  
 
   const updateGame = function(time, dt)
   {
@@ -291,35 +305,74 @@ function movementAndColorDemo() {
 
   const renderGame = function (time, deltaTime)
   {
-    // Render the Frame
-    gl.clearColor(0.08, 0.08, 0.08, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (false)
+    {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
 
-    gl.useProgram(movementAndColorProgram);
+      // Render the Frame
+      gl.clearColor(1.0, 0.08, 1.0, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.viewport(0, 0, canvas.width, canvas.height);
 
-    // Set uniforms shared across frame...
-    gl.uniform2f(uniformPositionCanvasSize, canvas.width, canvas.height);
-    gl.uniform1f(uniformPositionTime, time / 1000.0);
-    gl.uniform2f(uniformPositionPlayerPos, player.position[0], player.position[1]);
-    gl.uniform2f(uniformPositionPlayerSize, player.size[0], player.size[1]);
-    gl.uniform2f(uniformPositionBallPosition, ball.position[0], ball.position[1]);
-    gl.uniform2f(uniformPositionBallSize, ball.size[0], ball.size[1]);
-    gl.uniform1f(uniformPositionLastHitTime, hitTime);
-    gl.uniform3fv(uniformPositionBallHits, ballHits);
-    gl.uniform3fv(uniformPositionPlayerHits, playerHits);
+      gl.useProgram(movementAndColorProgram);
 
-    // Tell WebGL we want to affect texture unit 0
-    gl.activeTexture(gl.TEXTURE0);
+      // Set uniforms shared across frame...
+      gl.uniform2f(uniformPositionCanvasSize, canvas.width, canvas.height);
+      gl.uniform1f(uniformPositionTime, time / 1000.0);
+      gl.uniform2f(uniformPositionPlayerPos, player.position[0], player.position[1]);
+      gl.uniform2f(uniformPositionPlayerSize, player.size[0], player.size[1]);
+      gl.uniform2f(uniformPositionBallPosition, ball.position[0], ball.position[1]);
+      gl.uniform2f(uniformPositionBallSize, ball.size[0], ball.size[1]);
+      gl.uniform1f(uniformPositionLastHitTime, hitTime);
+      gl.uniform3fv(uniformPositionBallHits, ballHits);
+      gl.uniform3fv(uniformPositionPlayerHits, playerHits);
 
-    // Bind the texture to texture unit 0
-    gl.bindTexture(gl.TEXTURE_2D, texture);
+      // Tell WebGL we want to affect texture unit 0
+      gl.activeTexture(gl.TEXTURE0);
 
-    // Tell the shader we bound the texture to texture unit 0
-    gl.uniform1i(uniformPositionSampler, 0);
+      // Bind the texture to texture unit 0
+      gl.bindTexture(gl.TEXTURE_2D, textTexture);
 
-    gl.bindVertexArray(squareVao);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
+      // Tell the shader we bound the texture to texture unit 0
+      gl.uniform1i(uniformPositionSampler, 0);
+
+      gl.bindVertexArray(squareVao);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+
+    {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      
+      // Render the Frame
+      gl.clearColor(0.08, 0.08, 0.08, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+
+      gl.useProgram(movementAndColorProgram);
+
+      // Set uniforms shared across frame...
+      gl.uniform2f(uniformPositionCanvasSize, canvas.width, canvas.height);
+      gl.uniform1f(uniformPositionTime, time / 1000.0);
+      gl.uniform2f(uniformPositionPlayerPos, player.position[0], player.position[1]);
+      gl.uniform2f(uniformPositionPlayerSize, player.size[0], player.size[1]);
+      gl.uniform2f(uniformPositionBallPosition, ball.position[0], ball.position[1]);
+      gl.uniform2f(uniformPositionBallSize, ball.size[0], ball.size[1]);
+      gl.uniform1f(uniformPositionLastHitTime, hitTime);
+      gl.uniform3fv(uniformPositionBallHits, ballHits);
+      gl.uniform3fv(uniformPositionPlayerHits, playerHits);
+
+      // Tell WebGL we want to affect texture unit 0
+      gl.activeTexture(gl.TEXTURE0);
+
+      // Bind the texture to texture unit 0
+      gl.bindTexture(gl.TEXTURE_2D, textTexture);
+
+      // Tell the shader we bound the texture to texture unit 0
+      gl.uniform1i(uniformPositionSampler, 0);
+
+      gl.bindVertexArray(squareVao);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
 
   }
 

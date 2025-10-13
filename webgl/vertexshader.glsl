@@ -15,14 +15,27 @@ in vec2 vertexUV;
 out vec2 fragmentUV;
 
 void main() {
-  fragmentUV = vertexUV;
+  //TODO: feed aspect ratio directly to save at least 1 division
+  float screenAspect = uResolution.x / uResolution.y; //1.77
+  float cameraAspect = uCameraSize.x / uCameraSize.y; //0.5
 
   if (uRenderMode == 0)
   {
-    gl_Position = vec4(vertexPosition.xy * uScale + uTranslation, 0.0, 1.0);
+    fragmentUV = vec2(vertexPosition.x, -vertexPosition.y);
+    if (screenAspect > cameraAspect) {
+        // Screen is wider than camera: scale X
+        fragmentUV.x *= (screenAspect / cameraAspect) * 0.5;
+    } else {
+        // Screen is taller than camera: scale Y
+        fragmentUV.y *= (screenAspect / cameraAspect) * 0.5;
+    }
+
+    gl_Position = vec4(vertexPosition.xy, 0.0, 1.0);
   }
   else
   {
+    fragmentUV = vertexUV;
+
     //absolution world position of the vertex
     vec2 worldPos = uTranslation + vertexPosition.xy * uScale * 0.5;
 
@@ -32,9 +45,7 @@ void main() {
     //scale position of the vertex to the size of the camera to get -1 to 1 % values
     vec2 clipSpace = cameraRelative / (uCameraSize * 0.5);
 
-    //TODO: feed aspect ratio directly to save at least 1 division
-    float screenAspect = uResolution.x / uResolution.y;
-    float cameraAspect = uCameraSize.x / uCameraSize.y;
+
 
     if (screenAspect > cameraAspect) {
         // Screen is wider than camera: scale X

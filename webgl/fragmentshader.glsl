@@ -201,7 +201,7 @@ void main() {
 
     if (uRenderMode == 1)
     {
-        float distanceFromPlayer = length(fragmentUV.xy);
+        float distanceFromPlayer = distance(fragmentUV.xy, vec2(0.5, 0.5));
         float player = smoothstep(0.4, 0.5, distanceFromPlayer) - smoothstep(0.8, 0.9, distanceFromPlayer);
 
         //border = sin(border*8. + uTime)/8.; //alternating from -1 to 1

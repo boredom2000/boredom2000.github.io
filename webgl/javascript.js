@@ -265,7 +265,7 @@ async function movementAndColorDemo() {
 		uvWidth = uvRight - uvLeft;
 		uvHeight = uvBottom - uvTop;
 
-		rectUVs = new Float32Array([ uvLeft, uvTop, uvLeft, uvBottom, uvRight, uvBottom, uvLeft, uvTop, uvRight, uvBottom, uvRight, uvTop ]);
+		//rectUVs = new Float32Array([ uvLeft, uvTop, uvLeft, uvBottom, uvRight, uvBottom, uvLeft, uvTop, uvRight, uvBottom, uvRight, uvTop ]);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, squareUvBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, rectUVs, gl.STATIC_DRAW);

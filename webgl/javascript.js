@@ -186,6 +186,7 @@ async function movementAndColorDemo() {
   const uniformPositionBallHits = gl.getUniformLocation(movementAndColorProgram, 'uBallHits');
   const uniformPositionPlayerHits = gl.getUniformLocation(movementAndColorProgram, 'uPlayerHits');
   const uniformPositionSampler = gl.getUniformLocation(movementAndColorProgram, 'uSampler');
+  const uniformScale = gl.getUniformLocation(movementAndColorProgram, 'uScale');
   if (uniformPositionPlayerPos === null || uniformPositionPlayerSize === null || uniformPositionTime === null || uniformPositionCanvasSize === null
     || uniformPositionBallPosition === null || uniformPositionBallSize === null ||
     uniformPositionLastHitTime === null || uniformPositionBallHits === null || uniformPositionPlayerHits === null) {
@@ -203,13 +204,23 @@ async function movementAndColorDemo() {
   }
 
   // Create VAOs
-  const squareVao = createTwoBufferVao(
+  const backgroundVertexArray = createTwoBufferVao(
     gl, squareGeoBuffer, squareUvBuffer,
     vertexPositionAttributeLocation, vertexUVAttributeLocation);
 
-  if (!squareVao) {
+  if (!backgroundVertexArray) {
     showError(`Failed to create VAOs: (`
-      + `squareVao=${!!squareVao})`);
+      + `backgroundVertexArray=${!!backgroundVertexArray})`);
+    return;
+  }
+
+  const rectVertexArray = createTwoBufferVao(
+    gl, squareGeoBuffer, squareUvBuffer,
+    vertexPositionAttributeLocation, vertexUVAttributeLocation);
+
+  if (!rectVertexArray) {
+    showError(`Failed to create VAOs: (`
+      + `rectVertexArray=${!!rectVertexArray})`);
     return;
   }
 
@@ -259,7 +270,7 @@ async function movementAndColorDemo() {
     gl.bufferData(gl.ARRAY_BUFFER, squareUVs, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-    gl.bindVertexArray(squareVao);
+    gl.bindVertexArray(backgroundVertexArray);
     gl.bindBuffer(gl.ARRAY_BUFFER, squareUvBuffer);
     gl.vertexAttribPointer(
       vertexUVAttributeLocation, 2, gl.FLOAT, true, 0, 0);
@@ -346,7 +357,7 @@ async function movementAndColorDemo() {
       // Tell the shader we bound the texture to texture unit 0
       gl.uniform1i(uniformPositionSampler, 0);
 
-      gl.bindVertexArray(squareVao);
+      gl.bindVertexArray(backgroundVertexArray);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
 
@@ -360,6 +371,10 @@ async function movementAndColorDemo() {
 
       gl.useProgram(movementAndColorProgram);
 
+      
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.ONE, gl.ONE);
+
       // Set uniforms shared across frame...
       gl.uniform2f(uniformPositionCanvasSize, canvas.width, canvas.height);
       gl.uniform1f(uniformPositionTime, time / 1000.0);
@@ -370,6 +385,7 @@ async function movementAndColorDemo() {
       gl.uniform1f(uniformPositionLastHitTime, hitTime);
       gl.uniform3fv(uniformPositionBallHits, ballHits);
       gl.uniform3fv(uniformPositionPlayerHits, playerHits);
+      gl.uniform2f(uniformScale, 1.0, 1.0);
 
       // Tell WebGL we want to affect texture unit 0
       gl.activeTexture(gl.TEXTURE0);
@@ -380,8 +396,11 @@ async function movementAndColorDemo() {
       // Tell the shader we bound the texture to texture unit 0
       gl.uniform1i(uniformPositionSampler, 0);
 
-      gl.bindVertexArray(squareVao);
+      gl.bindVertexArray(backgroundVertexArray);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
+      gl.uniform2f(uniformScale, 0.2, 0.2);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+      
     }
 
   }

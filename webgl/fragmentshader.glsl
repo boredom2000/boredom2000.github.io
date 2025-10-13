@@ -11,6 +11,7 @@ uniform highp float uLastHitTime;
 uniform highp vec3 uBallHits[8];
 uniform highp vec3 uPlayerHits[8];
 uniform sampler2D uSampler;
+uniform int uRenderMode;
 
 in vec2 fragmentUV;
 out vec4 outputColor;
@@ -70,7 +71,7 @@ void main() {
     }
 
     //////////////GRID
-    {
+    if (uRenderMode == 0) {
         vec2 gridUV = fract((fragmentUV+uPlayerPosition*0.15) * 2.5);
         float gridX = max(1.0 - abs(gridUV.x - 0.5), 0.0);
         float gridY = max(1.0 - abs(gridUV.y - 0.5), 0.0);
@@ -85,7 +86,7 @@ void main() {
     }
 
     //////////////GRID2
-    {
+    if (uRenderMode == 0) {
         vec2 gridUV = fract((fragmentUV+uPlayerPosition*0.075) * 5.0);
         float gridX = max(1.0 - abs(gridUV.x - 0.5), 0.0);
         float gridY = max(1.0 - abs(gridUV.y - 0.5), 0.0);
@@ -100,7 +101,7 @@ void main() {
     }
     
     ///////EXPLOSION
-    {
+    if (uRenderMode == 0) {
         for (int i = 0; i<8; i++)
         {
             {
@@ -113,7 +114,7 @@ void main() {
 
 
     //////////////BALL
-    {
+    if (uRenderMode == 0) {
         float distanceFromBall = distance(uBallPosition.xy, fragmentUV.xy);
         float ball = smoothstep(uBallSize.x - 0.3, uBallSize.x, distanceFromBall) - smoothstep(uBallSize.x, uBallSize.x + 0.3, distanceFromBall);
 
@@ -141,7 +142,7 @@ void main() {
 
 
     //////////////PLAYER
-    {
+    if (uRenderMode == 0) {
         float distanceFromPlayer = distance(uPlayerPosition.xy, fragmentUV.xy);
         float player = smoothstep(uPlayerSize.x - 0.3, uPlayerSize.x, distanceFromPlayer) - smoothstep(uPlayerSize.x, uPlayerSize.x + 0.3, distanceFromPlayer);
 
@@ -166,7 +167,7 @@ void main() {
     }
 
     //////////////TEXT
-    {
+    if (uRenderMode == 0) {
         float flashScale = flash * 0.2;
         float textUvX = smoothstep(-0.5 - flashScale, 0.5 + flashScale, fragmentUV.x);
         float textUvY = smoothstep(-1.0 - flashScale, 0.0 + flashScale, fragmentUV.y);
@@ -192,6 +193,11 @@ void main() {
         //float mask = smoothstep(0.92, 1.0, distanceFromPlayer);
         //float black = 1.0 - mask *0.8;
         //finalColor = finalColor * vec3(black, black, black);
+    }
+
+    if (uRenderMode == 1)
+    {
+        finalColor += 0.3;
     }
     
     outputColor = vec4(finalColor, dummy1);

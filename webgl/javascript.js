@@ -187,6 +187,8 @@ async function movementAndColorDemo() {
   const uniformPositionPlayerHits = gl.getUniformLocation(movementAndColorProgram, 'uPlayerHits');
   const uniformPositionSampler = gl.getUniformLocation(movementAndColorProgram, 'uSampler');
   const uniformScale = gl.getUniformLocation(movementAndColorProgram, 'uScale');
+  const uniformRenderMode = gl.getUniformLocation(movementAndColorProgram, 'uRenderMode');
+
   if (uniformPositionPlayerPos === null || uniformPositionPlayerSize === null || uniformPositionTime === null || uniformPositionCanvasSize === null
     || uniformPositionBallPosition === null || uniformPositionBallSize === null ||
     uniformPositionLastHitTime === null || uniformPositionBallHits === null || uniformPositionPlayerHits === null) {
@@ -386,6 +388,7 @@ async function movementAndColorDemo() {
       gl.uniform3fv(uniformPositionBallHits, ballHits);
       gl.uniform3fv(uniformPositionPlayerHits, playerHits);
       gl.uniform2f(uniformScale, 1.0, 1.0);
+      gl.uniform1i(uniformRenderMode, 0);
 
       // Tell WebGL we want to affect texture unit 0
       gl.activeTexture(gl.TEXTURE0);
@@ -399,6 +402,7 @@ async function movementAndColorDemo() {
       gl.bindVertexArray(backgroundVertexArray);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       gl.uniform2f(uniformScale, 0.2, 0.2);
+      gl.uniform1i(uniformRenderMode, 1);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       
     }

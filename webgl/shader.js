@@ -1,8 +1,17 @@
-#version 300 es
-
+const vertexShaderSourceCode = `#version 300 es
 precision mediump float;
-precision mediump int;
-uniform int uRenderMode;
+
+in vec2 vertexPosition;
+in vec2 vertexUV;
+out vec2 fragmentUV;
+
+void main() {
+  fragmentUV = vertexUV;
+  gl_Position = vec4(vertexPosition.xy, 0.0, 1.0);
+}`;
+
+const fragmentShaderSourceCode = `#version 300 es
+precision mediump float;
 
 uniform vec2 uCanvasSize;
 uniform vec2 uPlayerPosition;
@@ -14,7 +23,6 @@ uniform highp float uLastHitTime;
 uniform highp vec3 uBallHits[8];
 uniform highp vec3 uPlayerHits[8];
 uniform sampler2D uSampler;
-
 
 in vec2 fragmentUV;
 out vec4 outputColor;
@@ -74,7 +82,7 @@ void main() {
     }
 
     //////////////GRID
-    if (uRenderMode == 0) {
+    {
         vec2 gridUV = fract((fragmentUV+uPlayerPosition*0.15) * 2.5);
         float gridX = max(1.0 - abs(gridUV.x - 0.5), 0.0);
         float gridY = max(1.0 - abs(gridUV.y - 0.5), 0.0);
@@ -89,7 +97,7 @@ void main() {
     }
 
     //////////////GRID2
-    if (uRenderMode == 0) {
+    {
         vec2 gridUV = fract((fragmentUV+uPlayerPosition*0.075) * 5.0);
         float gridX = max(1.0 - abs(gridUV.x - 0.5), 0.0);
         float gridY = max(1.0 - abs(gridUV.y - 0.5), 0.0);
@@ -104,7 +112,7 @@ void main() {
     }
     
     ///////EXPLOSION
-    if (uRenderMode == 0) {
+    {
         for (int i = 0; i<8; i++)
         {
             {
@@ -117,7 +125,7 @@ void main() {
 
 
     //////////////BALL
-    if (uRenderMode == 0) {
+    {
         float distanceFromBall = distance(uBallPosition.xy, fragmentUV.xy);
         float ball = smoothstep(uBallSize.x - 0.3, uBallSize.x, distanceFromBall) - smoothstep(uBallSize.x, uBallSize.x + 0.3, distanceFromBall);
 
@@ -145,7 +153,7 @@ void main() {
 
 
     //////////////PLAYER
-    if (uRenderMode == 0) {
+    {
         float distanceFromPlayer = distance(uPlayerPosition.xy, fragmentUV.xy);
         float player = smoothstep(uPlayerSize.x - 0.3, uPlayerSize.x, distanceFromPlayer) - smoothstep(uPlayerSize.x, uPlayerSize.x + 0.3, distanceFromPlayer);
 
@@ -170,7 +178,7 @@ void main() {
     }
 
     //////////////TEXT
-    if (uRenderMode == 0) {
+    {
         float flashScale = flash * 0.2;
         float textUvX = smoothstep(-0.5 - flashScale, 0.5 + flashScale, fragmentUV.x);
         float textUvY = smoothstep(-1.0 - flashScale, 0.0 + flashScale, fragmentUV.y);
@@ -196,36 +204,8 @@ void main() {
         //float mask = smoothstep(0.92, 1.0, distanceFromPlayer);
         //float black = 1.0 - mask *0.8;
         //finalColor = finalColor * vec3(black, black, black);
-        
-    }
-
-    if (uRenderMode == 1)
-    {
-        float distanceFromPlayer = length(fragmentUV.xy);
-        float player = smoothstep(0.4, 0.5, distanceFromPlayer) - smoothstep(0.8, 0.9, distanceFromPlayer);
-
-        //border = sin(border*8. + uTime)/8.; //alternating from -1 to 1
-        //border = abs(border); //alternating from 0 to 1
-        player = pow(0.05 / (1.0 - player), 1.2); //smoothstepping glowy
-        vec3 col = palette(length(uv0) + 5.0*.4 - uTime*0.15); //color
-
-        finalColor += player * col;
-        finalColor = clamp(finalColor, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
-
-        float black = smoothstep(0.7, 0.8, distanceFromPlayer);
-        finalColor = finalColor * vec3(black, black, black);
-
-        float insideColor = smoothstep(0.0, 0.1, distanceFromPlayer);
-        float distanceFromRotating = distance(uPlayerPosition.xy + vec2(sin(uTime * 3.0), cos(uTime * 3.0)) * uPlayerSize.x, fragmentUV.xy);
-        float mask = 1.0 - black;
-
-        vec3 addedColor = mix(palette(abs(sin(distanceFromRotating * 20.0 + uTime * 2.0))), vec3(1.0, 1.0, 1.0), flash);
-
-        finalColor += addedColor * mask;
-
-        finalColor = vec3(player, player, player);
     }
     
     outputColor = vec4(finalColor, dummy1);
 
-}
+}`;

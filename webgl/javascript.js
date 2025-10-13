@@ -22,7 +22,7 @@ function showLog(logText)
 }
 
 const squarePositions = new Float32Array([ -1, 1, -1, -1, 1, -1,  -1, 1, 1, -1, 1, 1 ]);
-var squareUVs = new Float32Array([ 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0 ]);
+var rectUVs = new Float32Array([ 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0 ]);
 
 function createStaticVertexBuffer(gl, data) {
 	const buffer = gl.createBuffer();
@@ -51,11 +51,9 @@ function createTwoBufferVao(gl, positionBuffer, uvBuffer, positionAttribLocation
 	gl.enableVertexAttribArray(uvAttribLocation);
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-	gl.vertexAttribPointer(
-		positionAttribLocation, 2, gl.FLOAT, false, 0, 0);
+	gl.vertexAttribPointer(positionAttribLocation, 2, gl.FLOAT, false, 0, 0);
 	gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
-	gl.vertexAttribPointer(
-		uvAttribLocation, 2, gl.FLOAT, true, 0, 0);
+	gl.vertexAttribPointer(uvAttribLocation, 2, gl.FLOAT, true, 0, 0);
 	gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
 	gl.bindVertexArray(null);
@@ -63,7 +61,8 @@ function createTwoBufferVao(gl, positionBuffer, uvBuffer, positionAttribLocation
 	return vao;
 }
 
-function createProgram(gl, vertexShaderSource, fragmentShaderSource) {
+function createProgram(gl, vertexShaderSource, fragmentShaderSource)
+{
 	const vertexShader = gl.createShader(gl.VERTEX_SHADER);
 	const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
 	const program = gl.createProgram();
@@ -139,16 +138,6 @@ async function movementAndColorDemo() {
 
 	gl = getContext(canvas);
 
-	const squareGeoBuffer = createStaticVertexBuffer(gl, squarePositions);
-	const squareUvBuffer = createStaticVertexBuffer(gl, squareUVs);
-
-	if (!squareGeoBuffer || !squareUvBuffer) {
-		showError(`Failed to create vertex buffers (`
-			+ `, square geo=${!!squareGeoBuffer}`
-			+ `, square uv=${!!squareUvBuffer}`);
-		return null;
-	}
-
 	// Get attribute locations
 	
 	const vertexShaderSourceCode = await loadShaderSource('vertexshader.glsl');
@@ -189,6 +178,9 @@ async function movementAndColorDemo() {
 	const uniformScale = gl.getUniformLocation(movementAndColorProgram, 'uScale');
 	const uniformTranslation = gl.getUniformLocation(movementAndColorProgram, 'uTranslation');
 	const uniformRenderMode = gl.getUniformLocation(movementAndColorProgram, 'uRenderMode');
+	const uniformResolution = gl.getUniformLocation(movementAndColorProgram, 'uResolution');
+	const uniformCameraPosition = gl.getUniformLocation(movementAndColorProgram, 'uCameraPosition');
+	const uniformCameraSize = gl.getUniformLocation(movementAndColorProgram, 'uCameraSize');
 
 	if (uniformPositionPlayerPos === null || uniformPositionPlayerSize === null || uniformPositionTime === null || uniformPositionCanvasSize === null
 		|| uniformPositionBallPosition === null || uniformPositionBallSize === null ||
@@ -207,9 +199,17 @@ async function movementAndColorDemo() {
 	}
 
 	// Create VAOs
-	const backgroundVertexArray = createTwoBufferVao(
-		gl, squareGeoBuffer, squareUvBuffer,
-		vertexPositionAttributeLocation, vertexUVAttributeLocation);
+	const squareGeoBuffer = createStaticVertexBuffer(gl, squarePositions);
+	const squareUvBuffer = createStaticVertexBuffer(gl, rectUVs);
+
+	if (!squareGeoBuffer || !squareUvBuffer) {
+		showError(`Failed to create vertex buffers (`
+			+ `, square geo=${!!squareGeoBuffer}`
+			+ `, square uv=${!!squareUvBuffer}`);
+		return null;
+	}
+
+	const backgroundVertexArray = createTwoBufferVao(gl, squareGeoBuffer, squareUvBuffer, vertexPositionAttributeLocation, vertexUVAttributeLocation);
 
 	if (!backgroundVertexArray) {
 		showError(`Failed to create VAOs: (`
@@ -217,9 +217,7 @@ async function movementAndColorDemo() {
 		return;
 	}
 
-	const rectVertexArray = createTwoBufferVao(
-		gl, squareGeoBuffer, squareUvBuffer,
-		vertexPositionAttributeLocation, vertexUVAttributeLocation);
+	const rectVertexArray = createTwoBufferVao(gl, squareGeoBuffer, squareUvBuffer, vertexPositionAttributeLocation, vertexUVAttributeLocation);
 
 	if (!rectVertexArray) {
 		showError(`Failed to create VAOs: (`
@@ -267,16 +265,15 @@ async function movementAndColorDemo() {
 		uvWidth = uvRight - uvLeft;
 		uvHeight = uvBottom - uvTop;
 
-		squareUVs = new Float32Array([ uvLeft, uvTop, uvLeft, uvBottom, uvRight, uvBottom, uvLeft, uvTop, uvRight, uvBottom, uvRight, uvTop ]);
+		rectUVs = new Float32Array([ uvLeft, uvTop, uvLeft, uvBottom, uvRight, uvBottom, uvLeft, uvTop, uvRight, uvBottom, uvRight, uvTop ]);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, squareUvBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, squareUVs, gl.STATIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER, rectUVs, gl.STATIC_DRAW);
 		gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
 		gl.bindVertexArray(backgroundVertexArray);
 		gl.bindBuffer(gl.ARRAY_BUFFER, squareUvBuffer);
-		gl.vertexAttribPointer(
-			vertexUVAttributeLocation, 2, gl.FLOAT, true, 0, 0);
+		gl.vertexAttribPointer(vertexUVAttributeLocation, 2, gl.FLOAT, true, 0, 0);
 		gl.bindBuffer(gl.ARRAY_BUFFER, null);
 		gl.bindVertexArray(null);
 
@@ -290,10 +287,18 @@ async function movementAndColorDemo() {
 		const attachmentPoint = gl.COLOR_ATTACHMENT0;
 		const level = 0;
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, targetTexture, level);
+
+		gl.viewport(0, 0, canvas.width, canvas.height);
+		gl.uniform2f(uniformPositionCanvasSize, canvas.width, canvas.height);
+
+		gl.uniform2f(uniformResolution, canvas.width, canvas.height);
+		gl.uniform2f(uniformCameraSize, playAreaWidth, playAreaHeight);
+		gl.uniform2f(uniformCameraPosition, 0.0, 0.0);
+
 	}
 
 	window.addEventListener('resize', updatePlayArea, true);
-	updatePlayArea();
+	
 
 	document.addEventListener("touchmove", process_touchmove, false);
 
@@ -320,7 +325,9 @@ async function movementAndColorDemo() {
 
 		showLog("Ball Position= " + ball.position[0] + ", " + ball.position[1] +
 		"<br \>Player Position= " + player.position[0] + ", " + player.position[1] +
+		"<br \>Ball Size= " + ball.size[0] + ", " + player.size[1] +
 		"<br \>Mouse Position= " + mousePos[0] + ", " + mousePos[1] +
+		"<br \>Delta Time= " + dt +
 		"<br \>time=" + time
 
 
@@ -333,18 +340,13 @@ async function movementAndColorDemo() {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			
 			// Render the Frame
-			gl.clearColor(0.08, 0.08, 0.08, 1.0);
+			gl.clearColor(0.00, 0.00, 0.00, 1.0);
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-			gl.viewport(0, 0, canvas.width, canvas.height);
-
-			gl.useProgram(movementAndColorProgram);
-
 			
-			gl.enable(gl.BLEND);
-			gl.blendFunc(gl.ONE, gl.ONE);
+			
 
 			// Set uniforms shared across frame...
-			gl.uniform2f(uniformPositionCanvasSize, canvas.width, canvas.height);
+			
 			gl.uniform1f(uniformPositionTime, time / 1000.0);
 			gl.uniform2f(uniformPositionPlayerPos, player.position[0], player.position[1]);
 			gl.uniform2f(uniformPositionPlayerSize, player.size[0], player.size[1]);
@@ -368,14 +370,20 @@ async function movementAndColorDemo() {
 
 			gl.bindVertexArray(backgroundVertexArray);
 			gl.drawArrays(gl.TRIANGLES, 0, 6);
-			gl.uniform2f(uniformScale, 0.2, 0.2);
-			gl.uniform2f(uniformTranslation, ball.position[0], -ball.position[1]);
+			
+			gl.uniform2f(uniformScale, ball.size[0], ball.size[1]);
+			gl.uniform2f(uniformTranslation, ball.position[0], ball.position[1]);
 			gl.uniform1i(uniformRenderMode, 1);
 			gl.drawArrays(gl.TRIANGLES, 0, 6);
-			
 		}
 
 	}
+
+	gl.useProgram(movementAndColorProgram);
+	gl.enable(gl.BLEND);
+	gl.blendFunc(gl.ONE, gl.ONE);
+
+	updatePlayArea();
 
 	let lastFrameTime = performance.now();
 	const frame = function () {

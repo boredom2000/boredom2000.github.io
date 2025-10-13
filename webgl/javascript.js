@@ -126,7 +126,14 @@ function getRandomInRange(min, max) {
 //
 // DEMO
 //
-function movementAndColorDemo() {
+
+async function loadShaderSource(url) {
+  const response = await fetch(url);
+  return await response.text();
+}
+
+
+async function movementAndColorDemo() {
   canvas = document.getElementById('demo-canvas');
   if (!canvas || !(canvas instanceof HTMLCanvasElement)) throw new Error('Failed to get demo canvas reference');
 
@@ -143,6 +150,9 @@ function movementAndColorDemo() {
   }
 
   // Get attribute locations
+  
+  const vertexShaderSourceCode = await loadShaderSource('vertexshader.glsl');
+  const fragmentShaderSourceCode = await loadShaderSource('fragmentshader.glsl');
   const movementAndColorProgram = createProgram(gl, vertexShaderSourceCode, fragmentShaderSourceCode);
   if (!movementAndColorProgram) {
     showError('Failed to create Movement and Color WebGL program');

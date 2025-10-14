@@ -177,6 +177,7 @@ async function movementAndColorDemo() {
 	const uniformPositionSampler = gl.getUniformLocation(movementAndColorProgram, 'uSampler');
 	const uniformScale = gl.getUniformLocation(movementAndColorProgram, 'uScale');
 	const uniformTranslation = gl.getUniformLocation(movementAndColorProgram, 'uTranslation');
+	const uniformRotation = gl.getUniformLocation(movementAndColorProgram, 'uRotation');
 	const uniformRenderMode = gl.getUniformLocation(movementAndColorProgram, 'uRenderMode');
 	const uniformResolution = gl.getUniformLocation(movementAndColorProgram, 'uResolution');
 	const uniformCameraPosition = gl.getUniformLocation(movementAndColorProgram, 'uCameraPosition');
@@ -357,6 +358,7 @@ async function movementAndColorDemo() {
 			gl.uniform3fv(uniformPositionPlayerHits, playerHits);
 			gl.uniform2f(uniformScale, 1.0, 1.0);
 			gl.uniform2f(uniformTranslation, 0.0, 0.0);
+			gl.uniform1f(uniformRotation, 0.0);
 			gl.uniform1i(uniformRenderMode, 0);
 
 			// Tell WebGL we want to affect texture unit 0
@@ -383,11 +385,13 @@ async function movementAndColorDemo() {
 			//gl.uniform1i(uniformRenderMode, 1);
 			gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-			//draw a rect
-			gl.uniform2f(uniformScale, 0.1, 0.5);
-			gl.uniform2f(uniformTranslation, 1, 0.4);
-			gl.uniform1i(uniformRenderMode, 2);
-			gl.drawArrays(gl.TRIANGLES, 0, 6);
+			rects.forEach(rect => {
+				gl.uniform2f(uniformScale, rect.size[0], rect.size[1]);
+				gl.uniform2f(uniformTranslation, rect.position[0], rect.position[1]);
+				gl.uniform1f(uniformRotation, -rect.rotation * 0.0055555555555556 * Math.PI);
+				gl.uniform1i(uniformRenderMode, 2);
+				gl.drawArrays(gl.TRIANGLES, 0, 6);
+			});
 		}
 
 	}

@@ -10,6 +10,7 @@ uniform vec2 uCameraSize;
 
 uniform vec2 uScale; // Example: a model transformation matrix
 uniform vec2 uTranslation; // Example: a model transformation matrix
+uniform float uRotation; // Example: a model transformation matrix
 in vec2 vertexPosition;
 in vec2 vertexUV;
 out vec2 fragmentUV;
@@ -37,7 +38,16 @@ void main() {
     fragmentUV = vertexUV;
 
     //absolution world position of the vertex
-    vec2 worldPos = uTranslation + vertexPosition.xy * uScale * 0.5;
+    vec2 scaledPos = vertexPosition.xy * uScale * 0.5;
+
+    // --- Rotate using 2D rotation matrix ---
+    float cosR = cos(uRotation);
+    float sinR = sin(uRotation);
+    mat2 rotation = mat2(cosR, -sinR,
+                         sinR,  cosR);
+    vec2 rotatedPos = rotation * scaledPos;
+
+    vec2 worldPos = rotatedPos + uTranslation;
 
     //camera position relative world position of the vertex
     vec2 cameraRelative = worldPos - uCameraPosition;

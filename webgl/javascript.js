@@ -371,9 +371,22 @@ async function movementAndColorDemo() {
 			gl.bindVertexArray(backgroundVertexArray);
 			gl.drawArrays(gl.TRIANGLES, 0, 6);
 			
-			gl.uniform2f(uniformScale, ball.size[0], ball.size[1]);
+			//draw the ball
+			gl.uniform2f(uniformScale, ball.size[0] * 3.0, ball.size[1] * 3.0);
 			gl.uniform2f(uniformTranslation, ball.position[0], ball.position[1]);
 			gl.uniform1i(uniformRenderMode, 1);
+			gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+			//draw the player
+			gl.uniform2f(uniformScale, player.size[0] * 3.0, player.size[1] * 3.0);
+			gl.uniform2f(uniformTranslation, player.position[0], player.position[1]);
+			//gl.uniform1i(uniformRenderMode, 1);
+			gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+			//draw a rect
+			gl.uniform2f(uniformScale, 0.1, 0.5);
+			gl.uniform2f(uniformTranslation, 1, 0.4);
+			gl.uniform1i(uniformRenderMode, 2);
 			gl.drawArrays(gl.TRIANGLES, 0, 6);
 		}
 

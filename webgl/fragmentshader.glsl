@@ -201,31 +201,62 @@ void main() {
 
     if (uRenderMode == 1)
     {
-        float distanceFromPlayer = distance(fragmentUV.xy, vec2(0.5, 0.5));
-        float player = smoothstep(0.4, 0.5, distanceFromPlayer) - smoothstep(0.8, 0.9, distanceFromPlayer);
+        float distanceFromBall = distance(fragmentUV.xy, vec2(0.5, 0.5));
+        vec2 adjustedBallSize = uBallSize * 3.0;
+        float ball = smoothstep(adjustedBallSize.x - 0.3, adjustedBallSize.x, distanceFromBall) - smoothstep(adjustedBallSize.x, adjustedBallSize.x + 0.3, distanceFromBall);
 
         //border = sin(border*8. + uTime)/8.; //alternating from -1 to 1
         //border = abs(border); //alternating from 0 to 1
-        player = pow(0.05 / (1.0 - player), 1.2); //smoothstepping glowy
-        vec3 col = palette(length(uv0) + 5.0*.4 - uTime*0.15); //color
+        ball = pow(0.05 / (1.0 - ball), 1.2); //smoothstepping glowy
+        vec3 col = palette(length(uv0) + 4.0*.4 - uTime*0.4); //color
 
-        finalColor += player * col;
+        finalColor += ball * col;
         finalColor = clamp(finalColor, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
 
-        float black = smoothstep(0.7, 0.8, distanceFromPlayer);
+        float black = smoothstep(adjustedBallSize.x, adjustedBallSize.x+ 0.02, distanceFromBall);
         finalColor = finalColor * vec3(black, black, black);
 
-        float insideColor = smoothstep(0.0, 0.1, distanceFromPlayer);
-        float distanceFromRotating = distance(uPlayerPosition.xy + vec2(sin(uTime * 3.0), cos(uTime * 3.0)) * uPlayerSize.x, fragmentUV.xy);
+        float insideColor = smoothstep(0.0, adjustedBallSize.x+ 0.02, distanceFromBall);
+        float distanceFromRotating = distance(uBallPosition.xy + vec2(sin(uTime * 3.0), cos(uTime * 3.0)) * adjustedBallSize.x, fragmentUV.xy);
+
         float mask = 1.0 - black;
 
         vec3 addedColor = mix(palette(abs(sin(distanceFromRotating * 20.0 + uTime * 2.0))), vec3(1.0, 1.0, 1.0), flash);
 
         finalColor += addedColor * mask;
 
-        finalColor = vec3(player, player, player);
+        //finalColor = vec3(1.0, 0.0, 1.0);
+    }
+
+    if (uRenderMode == 2)
+    {
+        //float distanceFromBall = distance(fragmentUV.xy, vec2(0.5, 0.5));
+        float distanceFromBall = max(abs(fragmentUV.x - 0.5), abs(fragmentUV.y - 0.5));
+        vec2 adjustedBallSize = uBallSize * 3.0;
+        float ball = smoothstep(adjustedBallSize.x - 0.3, adjustedBallSize.x, distanceFromBall) - smoothstep(adjustedBallSize.x, adjustedBallSize.x + 0.3, distanceFromBall);
+
+        //border = sin(border*8. + uTime)/8.; //alternating from -1 to 1
+        //border = abs(border); //alternating from 0 to 1
+        ball = pow(0.05 / (1.0 - ball), 1.2); //smoothstepping glowy
+        vec3 col = palette(length(uv0) + 4.0*.4 - uTime*0.4); //color
+
+        finalColor += ball * col;
+        finalColor = clamp(finalColor, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
+
+        float black = smoothstep(adjustedBallSize.x, adjustedBallSize.x+ 0.02, distanceFromBall);
+        finalColor = finalColor * vec3(black, black, black);
+
+        float insideColor = smoothstep(0.0, adjustedBallSize.x+ 0.02, distanceFromBall);
+        float distanceFromRotating = distance(uBallPosition.xy + vec2(sin(uTime * 3.0), cos(uTime * 3.0)) * adjustedBallSize.x, fragmentUV.xy);
+
+        float mask = 1.0 - black;
+
+        vec3 addedColor = mix(palette(abs(sin(distanceFromRotating * 20.0 + uTime * 2.0))), vec3(1.0, 1.0, 1.0), flash);
+
+        finalColor += addedColor * mask;
+
+        //finalColor = vec3(1.0, 0.0, 1.0);
     }
     
     outputColor = vec4(finalColor, dummy1);
-
 }

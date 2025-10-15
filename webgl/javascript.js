@@ -168,28 +168,27 @@ async function movementAndColorDemo() {
 	const uniformPositionPlayerPos = gl.getUniformLocation(movementAndColorProgram, 'uPlayerPosition');
 	const uniformPositionPlayerSize = gl.getUniformLocation(movementAndColorProgram, 'uPlayerSize');
 	const uniformPositionTime = gl.getUniformLocation(movementAndColorProgram, 'uTime');
-	const uniformPositionCanvasSize = gl.getUniformLocation(movementAndColorProgram, 'uCanvasSize');
 	const uniformPositionBallPosition = gl.getUniformLocation(movementAndColorProgram, 'uBallPosition');
 	const uniformPositionBallSize = gl.getUniformLocation(movementAndColorProgram, 'uBallSize');
 	const uniformPositionLastHitTime = gl.getUniformLocation(movementAndColorProgram, 'uLastHitTime');
 	const uniformPositionBallHits = gl.getUniformLocation(movementAndColorProgram, 'uBallHits');
 	const uniformPositionPlayerHits = gl.getUniformLocation(movementAndColorProgram, 'uPlayerHits');
 	const uniformPositionSampler = gl.getUniformLocation(movementAndColorProgram, 'uSampler');
-	const uniformScale = gl.getUniformLocation(movementAndColorProgram, 'uScale');
+	const uniformSize = gl.getUniformLocation(movementAndColorProgram, 'uSize');
 	const uniformTranslation = gl.getUniformLocation(movementAndColorProgram, 'uTranslation');
 	const uniformRotation = gl.getUniformLocation(movementAndColorProgram, 'uRotation');
 	const uniformRenderMode = gl.getUniformLocation(movementAndColorProgram, 'uRenderMode');
 	const uniformResolution = gl.getUniformLocation(movementAndColorProgram, 'uResolution');
+	const uniformToClipSize = gl.getUniformLocation(movementAndColorProgram, 'uToClipSpace');
 	const uniformCameraPosition = gl.getUniformLocation(movementAndColorProgram, 'uCameraPosition');
 	const uniformCameraSize = gl.getUniformLocation(movementAndColorProgram, 'uCameraSize');
 
-	if (uniformPositionPlayerPos === null || uniformPositionPlayerSize === null || uniformPositionTime === null || uniformPositionCanvasSize === null
+	if (uniformPositionPlayerPos === null || uniformPositionPlayerSize === null || uniformPositionTime === null
 		|| uniformPositionBallPosition === null || uniformPositionBallSize === null ||
 		uniformPositionLastHitTime === null || uniformPositionBallHits === null || uniformPositionPlayerHits === null) {
 		showError(`Failed to get uniform locations (uniformPositionPlayerPos=${!!uniformPositionPlayerPos}`
 		 + `, uTime=${!!uniformPositionTime}`
 		 + `, uniformPositionPlayerSize=${!!uniformPositionPlayerSize}`
-		 + `, uCanvasSize=${!!uniformPositionCanvasSize}`
 		 + `, uBallPosition=${!!uniformPositionBallPosition}`
 		 + `, uBallSize=${!!uniformPositionBallSize}`
 		 + `, uLastHitTime=${!!uniformPositionLastHitTime}`
@@ -290,44 +289,37 @@ async function movementAndColorDemo() {
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, targetTexture, level);
 
 		gl.viewport(0, 0, canvas.width, canvas.height);
-		gl.uniform2f(uniformPositionCanvasSize, canvas.width, canvas.height);
 
 		gl.uniform2f(uniformResolution, canvas.width, canvas.height);
 		gl.uniform2f(uniformCameraSize, playAreaWidth, playAreaHeight);
 		gl.uniform2f(uniformCameraPosition, 0.0, 0.0);
 
-	}
 
-	window.addEventListener('resize', updatePlayArea, true);
-	
+		let screenAspect = canvas.width / canvas.height; //1.77
+  		let cameraAspect = playAreaWidth / playAreaHeight; //0.5
 
-	document.addEventListener("touchmove", process_touchmove, false);
-
-	var mousePos = [0.0, 0.0];
-	function process_touchmove(evt)
-	{
-		var rect = canvas.getBoundingClientRect();
-		mousePos = [uvLeft + (evt.touches[0].clientX - rect.left)  / canvas.width * uvWidth, uvTop + (evt.touches[0].clientY - rect.top) / canvas.height * uvHeight];
+		if (screenAspect > cameraAspect) {
+			// Screen is wider than camera: scale X
+			gl.uniform2f(uniformToClipSize, cameraAspect / screenAspect, 1.0);
+		} else {
+			// Screen is taller than camera: scale Y
+			gl.uniform2f(uniformToClipSize, 1.0, screenAspect / cameraAspect);
+		}
+		
+		
 	}
-	//state
-	document.onmousemove = handleMouseMove;
-	function handleMouseMove(event)
-	{
-		var rect = canvas.getBoundingClientRect();
-		mousePos = [uvLeft + (event.pageX - rect.left)  / canvas.width * uvWidth, uvTop + (event.pageY - rect.top) / canvas.height * uvHeight];
-	}
-	
 
 	const updateGame = function(time, dt)
 	{
-		player.update(dt, mousePos);
+		player.update(dt, movementVector);
 		ball.update(dt);
-		updateGameState(time, ball, player);
+		updateGameState(time, dt);
+		
 
 		showLog("Ball Position= " + ball.position[0] + ", " + ball.position[1] +
 		"<br \>Player Position= " + player.position[0] + ", " + player.position[1] +
 		"<br \>Ball Size= " + ball.size[0] + ", " + player.size[1] +
-		"<br \>Mouse Position= " + mousePos[0] + ", " + mousePos[1] +
+		"<br \>movementVector= " + movementVector[0] + ", " + movementVector[1] +
 		"<br \>Delta Time= " + dt +
 		"<br \>time=" + time
 
@@ -356,10 +348,11 @@ async function movementAndColorDemo() {
 			gl.uniform1f(uniformPositionLastHitTime, hitTime);
 			gl.uniform3fv(uniformPositionBallHits, ballHits);
 			gl.uniform3fv(uniformPositionPlayerHits, playerHits);
-			gl.uniform2f(uniformScale, 1.0, 1.0);
+			gl.uniform2f(uniformSize, 1.0, 1.0);
 			gl.uniform2f(uniformTranslation, 0.0, 0.0);
 			gl.uniform1f(uniformRotation, 0.0);
 			gl.uniform1i(uniformRenderMode, 0);
+			gl.uniform2f(uniformCameraPosition, (player.position[0] + ball.position[0]) / 2.0, (player.position[1] + ball.position[1]) / 2.0);
 
 			// Tell WebGL we want to affect texture unit 0
 			gl.activeTexture(gl.TEXTURE0);
@@ -374,19 +367,19 @@ async function movementAndColorDemo() {
 			gl.drawArrays(gl.TRIANGLES, 0, 6);
 			
 			//draw the ball
-			gl.uniform2f(uniformScale, ball.size[0] * 3.0, ball.size[1] * 3.0);
+			gl.uniform2f(uniformSize, ball.size[0] * 3.0, ball.size[1] * 3.0);
 			gl.uniform2f(uniformTranslation, ball.position[0], ball.position[1]);
 			gl.uniform1i(uniformRenderMode, 1);
 			gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 			//draw the player
-			gl.uniform2f(uniformScale, player.size[0] * 3.0, player.size[1] * 3.0);
+			gl.uniform2f(uniformSize, player.size[0] * 3.0, player.size[1] * 3.0);
 			gl.uniform2f(uniformTranslation, player.position[0], player.position[1]);
 			//gl.uniform1i(uniformRenderMode, 1);
 			gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 			rects.forEach(rect => {
-				gl.uniform2f(uniformScale, rect.size[0], rect.size[1]);
+				gl.uniform2f(uniformSize, rect.size[0], rect.size[1]);
 				gl.uniform2f(uniformTranslation, rect.position[0], rect.position[1]);
 				gl.uniform1f(uniformRotation, -rect.rotation * 0.0055555555555556 * Math.PI);
 				gl.uniform1i(uniformRenderMode, 2);

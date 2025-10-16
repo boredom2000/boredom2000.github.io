@@ -57,8 +57,8 @@ var nextHitIndex = 0;
 var DELAY_BETWEEN_HITS = 1000.0;
 var DELAY_BETWEEN_ROUNDS = 2000.0;
 var HIT_INDEX_MAX = 8;
-var player = new GamePlayer([0.0, 0.5], [0.05, 0.05], [0,0]);
-var ball = new GameBall([0.0, 0.0], [0.05, -1.5], [0.0, 1.0], [0.1, 0.1]);
+var player = new GamePlayer([0.0, -0.5], [0.05, 0.05], [0,0]);
+var ball = new GameBall([0.0, 0.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
 var ballHits = new Float32Array([-99999.0, 0.0, 0.0,
                 -99999.0, 0.0, 0.0,
                 -99999.0, 0.0, 0.0,
@@ -80,6 +80,9 @@ var playerHits = new Float32Array([-99999.0, 0.0, 0.0,
 var rects = [];
 rects.push(new RectCollision([-1.5, 0.5], [1.0, 1.0], 0.0));
 rects.push(new RectCollision([1.5, -0.5], [1.0, 1.0], 0.0));
+rects.push(new RectCollision([0, 3.0], [6.0, 0.3], 0.0));
+rects.push(new RectCollision([3.0, 0.0], [0.3, 6.0], 0.0));
+rects.push(new RectCollision([-3.0, 0.0], [0.3, 6.0], 0.0));
 
 function updateGameState(time, dt)
 {
@@ -91,12 +94,12 @@ function updateGameState(time, dt)
         }
 
         ball = null;
-        ball = new GameBall([0.0, 0.0], [0.05, -1.5], [0.0, 1.0], [0.1, 0.1]);
+        ball = new GameBall([0.0, 0.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
         waitingForNextRound = false;
         currentNumberOfHits = 0;
         createTextTexture(gl, getTailingZeroNumber(currentNumberOfHits));
     }
-    else if (ball.position[1] > 1.0)
+    else if (ball.position[1] < -1.0)
     {
         timeBeforeNextRound = time + DELAY_BETWEEN_ROUNDS;
         waitingForNextRound = true;

@@ -6,6 +6,9 @@ uniform int uRenderMode;
 
 uniform vec2 uPlayerPosition;
 uniform vec2 uPlayerSize;
+uniform vec2 uCameraPosition;
+uniform vec2 uToClipSpace;
+
 uniform highp float uTime;
 uniform vec2 uBallPosition;
 uniform vec2 uBallSize;
@@ -45,7 +48,7 @@ vec3 explosionRing(vec2 uv, vec2 explosionPosition, vec2 playerPosition, vec2 si
 
 void main() {
     vec2 uv = (fragmentUV * 2.0 - vec2(1.0, 1.0));
-    vec2 uv0 = fragmentUV - uPlayerPosition;
+    vec2 uv0 = fragmentUV - (uCameraPosition * uToClipSpace);
     vec3 finalColor = vec3(0.0);
 
     float lastHitTime = uTime - uLastHitTime;

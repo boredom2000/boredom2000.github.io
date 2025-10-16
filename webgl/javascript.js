@@ -293,21 +293,9 @@ async function movementAndColorDemo() {
 		gl.uniform2f(uniformResolution, canvas.width, canvas.height);
 		gl.uniform2f(uniformCameraSize, playAreaWidth, playAreaHeight);
 		gl.uniform2f(uniformCameraPosition, 0.0, 0.0);
-
-
-		let screenAspect = canvas.width / canvas.height; //1.77
-  		let cameraAspect = playAreaWidth / playAreaHeight; //0.5
-
-		if (screenAspect > cameraAspect) {
-			// Screen is wider than camera: scale X
-			gl.uniform2f(uniformToClipSize, cameraAspect / screenAspect, 1.0);
-		} else {
-			// Screen is taller than camera: scale Y
-			gl.uniform2f(uniformToClipSize, 1.0, screenAspect / cameraAspect);
-		}
-		
-		
 	}
+
+	window.addEventListener('resize', updatePlayArea, true);
 
 	const updateGame = function(time, dt)
 	{
@@ -353,6 +341,17 @@ async function movementAndColorDemo() {
 			gl.uniform1f(uniformRotation, 0.0);
 			gl.uniform1i(uniformRenderMode, 0);
 			gl.uniform2f(uniformCameraPosition, (player.position[0] + ball.position[0]) / 2.0, (player.position[1] + ball.position[1]) / 2.0);
+
+			let screenAspect = canvas.width / canvas.height; //1.77
+			let cameraAspect = playAreaWidth / playAreaHeight; //0.5
+
+			if (screenAspect > cameraAspect) {
+				// Screen is wider than camera: scale X
+				gl.uniform2f(uniformToClipSize, (cameraAspect / screenAspect) * (2.0 / playAreaWidth), 2.0 / playAreaHeight);
+			} else {
+				// Screen is taller than camera: scale Y
+				gl.uniform2f(uniformToClipSize, 2.0 / playAreaWidth, (screenAspect / cameraAspect) * (2.0 / playAreaHeight));
+			}
 
 			// Tell WebGL we want to affect texture unit 0
 			gl.activeTexture(gl.TEXTURE0);

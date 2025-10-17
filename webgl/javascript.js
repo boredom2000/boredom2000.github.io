@@ -175,6 +175,7 @@ async function movementAndColorDemo() {
 	const uniformPositionPlayerHits = gl.getUniformLocation(movementAndColorProgram, 'uPlayerHits');
 	const uniformPositionSampler = gl.getUniformLocation(movementAndColorProgram, 'uSampler');
 	const uniformSize = gl.getUniformLocation(movementAndColorProgram, 'uSize');
+	const uniformPadding = gl.getUniformLocation(movementAndColorProgram, 'uPadding');
 	const uniformTranslation = gl.getUniformLocation(movementAndColorProgram, 'uTranslation');
 	const uniformRotation = gl.getUniformLocation(movementAndColorProgram, 'uRotation');
 	const uniformRenderMode = gl.getUniformLocation(movementAndColorProgram, 'uRenderMode');
@@ -344,6 +345,7 @@ async function movementAndColorDemo() {
 			gl.uniform3fv(uniformPositionBallHits, ballHits);
 			gl.uniform3fv(uniformPositionPlayerHits, playerHits);
 			gl.uniform2f(uniformSize, 1.0, 1.0);
+			gl.uniform2f(uniformPadding, 0.0, 0.0);
 			gl.uniform2f(uniformTranslation, 0.0, 0.0);
 			gl.uniform1f(uniformRotation, 0.0);
 			gl.uniform1i(uniformRenderMode, 0);
@@ -380,6 +382,8 @@ async function movementAndColorDemo() {
 			if (ball != null)
 			{
 				gl.uniform2f(uniformSize, ball.size[0] * 3.0, ball.size[1] * 3.0);
+				gl.uniform2f(uniformPadding, 0.2, 0.2);
+				
 				gl.uniform2f(uniformTranslation, ball.position[0], ball.position[1]);
 				gl.uniform1i(uniformRenderMode, 1);
 				gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -390,6 +394,7 @@ async function movementAndColorDemo() {
 			if (player != null)
 			{
 				gl.uniform2f(uniformSize, player.size[0] * 3.0, player.size[1] * 3.0);
+				gl.uniform2f(uniformPadding, 0.2, 0.2);
 				gl.uniform2f(uniformTranslation, player.position[0], player.position[1]);
 				//gl.uniform1i(uniformRenderMode, 1);
 				gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -398,6 +403,7 @@ async function movementAndColorDemo() {
 
 			rects.forEach(rect => {
 				gl.uniform2f(uniformSize, rect.size[0], rect.size[1]);
+				gl.uniform2f(uniformPadding, 0.2, 0.2);
 				gl.uniform2f(uniformTranslation, rect.position[0], rect.position[1]);
 				gl.uniform1f(uniformRotation, -rect.rotation * 0.0055555555555556 * Math.PI);
 				gl.uniform1i(uniformRenderMode, 2);

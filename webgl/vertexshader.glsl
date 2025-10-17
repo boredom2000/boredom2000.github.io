@@ -11,6 +11,7 @@ uniform vec2 uCameraSize;
 uniform vec2 uToClipSpace;
 
 uniform vec2 uSize; // Example: a model transformation matrix
+uniform vec2 uPadding;
 uniform vec2 uTranslation; // Example: a model transformation matrix
 uniform float uRotation; // Example: a model transformation matrix
 in vec2 vertexPosition;
@@ -40,7 +41,8 @@ void main() {
     fragmentUV = vertexUV;
 
     //absolution world position of the vertex
-    vec2 scaledPos = vertexPosition.xy * uSize * 0.5;
+    vec2 scaledPos = vertexPosition.xy * (uSize + uPadding) * 0.5;
+    //scaledPos += vec2(1.0, 1.0);
 
     // --- Rotate using 2D rotation matrix ---
     float cosR = cos(uRotation);
@@ -56,24 +58,6 @@ void main() {
 
     //scale position of the vertex to the size of the camera to get -1 to 1 % values
     vec2 clipSpace = cameraRelative * uToClipSpace;
-
-  if (false)
-  {
-    vec2 clipSpace = cameraRelative / (uCameraSize * 0.5);
-
-
-
-    if (screenAspect > cameraAspect) {
-        // Screen is wider than camera: scale X
-        clipSpace.x *= cameraAspect / screenAspect;
-    } else {
-        // Screen is taller than camera: scale Y
-        clipSpace.y *= screenAspect / cameraAspect;
-    }
-
-    clipSpace.y *= -1.0;
-  }
-
 
     gl_Position = vec4(clipSpace, 0.0, 1.0);
   }

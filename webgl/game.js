@@ -118,7 +118,7 @@ function updateGameState(time, dt)
     {
         var xSquareDistance = Math.pow(player.position[0] - ball.position[0], 2);
         var ySquareDistance = Math.pow(player.position[1] - ball.position[1], 2);
-        var squareDistance = Math.pow(ball.size[0] + player.size[0], 2);
+        var squareDistance = Math.pow(ball.size[0] * 2.0 + player.size[0] * 2.0, 2);
         if (squareDistance > (xSquareDistance + ySquareDistance))
         {
             var diffX = ball.position[0] - player.position[0];

@@ -23,7 +23,7 @@ void main() {
   float screenAspect = uResolution.x / uResolution.y; //1.77
   float cameraAspect = uCameraSize.x / uCameraSize.y; //0.5
 
-  if (uRenderMode == 0)
+  if (false /*uRenderMode == 0*/)
   {
     fragmentUV = vec2(vertexPosition.x, -vertexPosition.y);
     if (screenAspect > cameraAspect) {

@@ -80,7 +80,7 @@ void main() {
 
     //////////////GRID
     if (uRenderMode == 0) {
-        vec2 gridUV = fract((fragmentUV+uPlayerPosition*0.15) * 2.5);
+        vec2 gridUV = fract((fragmentUV) * 25.0);
         float gridX = max(1.0 - abs(gridUV.x - 0.5), 0.0);
         float gridY = max(1.0 - abs(gridUV.y - 0.5), 0.0);
         float grid = max(gridX, gridY);
@@ -88,14 +88,14 @@ void main() {
         //border = sin(border*8. + uTime)/8.; //alternating from -1 to 1
         //border = abs(border); //alternating from 0 to 1
         grid = pow(0.02 / (1.0 - grid), 1.2); //smoothstepping glowy
-        vec3 col = palette(uv0.x+uPlayerPosition.x*0.15 + 4.0*.4 - uTime*0.13); //color
+        vec3 col = palette(uv0.x + 4.0*.4 - uTime*0.13); //color
 
         finalColor += grid * col;
     }
 
-    //////////////GRID2
+    //////////////GRID2 (try to do parallax here)
     if (uRenderMode == 0) {
-        vec2 gridUV = fract((fragmentUV+uPlayerPosition*0.075) * 5.0);
+        vec2 gridUV = fract((fragmentUV) * 5.0);
         float gridX = max(1.0 - abs(gridUV.x - 0.5), 0.0);
         float gridY = max(1.0 - abs(gridUV.y - 0.5), 0.0);
         float grid = max(gridX, gridY);
@@ -103,7 +103,7 @@ void main() {
         //border = sin(border*8. + uTime)/8.; //alternating from -1 to 1
         //border = abs(border); //alternating from 0 to 1
         grid = pow(0.03 / (1.0 - grid), 1.2); //smoothstepping glowy
-        vec3 col = palette(length(uv0.y+uPlayerPosition.y*0.075) + 4.0*.4 - uTime*0.1); //color
+        vec3 col = palette(length(uv0.y) + 4.0*.4 - uTime*0.1); //color
 
         finalColor += grid * col;
     }
@@ -229,7 +229,7 @@ void main() {
 
         finalColor += addedColor * mask;
 
-        if (true)
+        if (false)
         { //debug pink collision
             vec2 trueShape = uSize / (uSize + uPadding);
             vec2 trueShapeUVStart = (vec2(1.0, 1.0) - trueShape) * vec2(0.5, 0.5);
@@ -272,7 +272,7 @@ void main() {
 
         finalColor += addedColor * mask;
 
-        if (true)
+        if (false)
         { //debug pink collision
             vec2 trueShape = uSize / (uSize + uPadding);
             vec2 trueShapeUVStart = (vec2(1.0, 1.0) - trueShape) * vec2(0.5, 0.5);

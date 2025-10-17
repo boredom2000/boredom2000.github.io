@@ -204,7 +204,7 @@ void main() {
     if (uRenderMode == 1)
     {
         float distanceFromBall = distance(fragmentUV.xy, vec2(0.5, 0.5));
-        vec2 adjustedBallSize = uBallSize * 3.0;
+        vec2 adjustedBallSize = vec2(0.3, 0.3);
         float ball = smoothstep(adjustedBallSize.x - 0.3, adjustedBallSize.x, distanceFromBall) - smoothstep(adjustedBallSize.x, adjustedBallSize.x + 0.3, distanceFromBall);
 
         //border = sin(border*8. + uTime)/8.; //alternating from -1 to 1
@@ -226,7 +226,7 @@ void main() {
 
         finalColor += addedColor * mask;
 
-        //finalColor += vec3(1.0, 0.0, 1.0);
+        finalColor += vec3(1.0, 0.0, 1.0);
 
         //finalColor = vec3(1.0, 0.0, 1.0);
     }
@@ -235,7 +235,7 @@ void main() {
     {
         //float distanceFromBall = distance(fragmentUV.xy, vec2(0.5, 0.5));
         float distanceFromBall = max(abs(fragmentUV.x - 0.5), abs(fragmentUV.y - 0.5));
-        vec2 adjustedBallSize = uBallSize * 3.0;
+        vec2 adjustedBallSize = vec2(0.3, 0.3);
         float ball = smoothstep(adjustedBallSize.x - 0.3, adjustedBallSize.x, distanceFromBall) - smoothstep(adjustedBallSize.x, adjustedBallSize.x + 0.3, distanceFromBall);
 
         //border = sin(border*8. + uTime)/8.; //alternating from -1 to 1
@@ -258,7 +258,7 @@ void main() {
 
         finalColor += addedColor * mask;
 
-        //finalColor += vec3(1.0, 0.0, 1.0);
+        finalColor += vec3(1.0, 0.0, 1.0);
     }
     
     outputColor = vec4(finalColor, dummy1);

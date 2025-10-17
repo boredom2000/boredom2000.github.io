@@ -228,8 +228,7 @@ async function movementAndColorDemo() {
 	var uvTop, uvLeft, uvBottom, uvRight, uvWidth, uvHeight;
 	let fb;
 
-	const playAreaWidth = 1.0;
-	const playAreaHeight = 2.0;
+
 
 	function updatePlayArea()
 	{
@@ -299,12 +298,11 @@ async function movementAndColorDemo() {
 
 	const updateGame = function(time, dt)
 	{
-		player.update(dt, movementVector);
-		ball.update(dt);
-		updateGameState(time, dt);
-		
+		if (player != null)
+		{
+			player.update(dt, movementVector);
 
-		showLog("Ball Position= " + ball.position[0] + ", " + ball.position[1] +
+			showLog("Ball Position= " + ball.position[0] + ", " + ball.position[1] +
 		"<br \>Player Position= " + player.position[0] + ", " + player.position[1] +
 		"<br \>Ball Size= " + ball.size[0] + ", " + player.size[1] +
 		"<br \>movementVector= " + movementVector[0] + ", " + movementVector[1] +
@@ -313,6 +311,15 @@ async function movementAndColorDemo() {
 
 
 		);
+		}
+		if (ball != null)
+		{
+			ball.update(dt);
+		}
+		updateGameState(time, dt);
+		
+
+		
 	}
 
 	const renderGame = function (time, deltaTime)
@@ -329,10 +336,10 @@ async function movementAndColorDemo() {
 			// Set uniforms shared across frame...
 			
 			gl.uniform1f(uniformPositionTime, time / 1000.0);
-			gl.uniform2f(uniformPositionPlayerPos, player.position[0], player.position[1]);
-			gl.uniform2f(uniformPositionPlayerSize, player.size[0], player.size[1]);
-			gl.uniform2f(uniformPositionBallPosition, ball.position[0], ball.position[1]);
-			gl.uniform2f(uniformPositionBallSize, ball.size[0], ball.size[1]);
+			//gl.uniform2f(uniformPositionPlayerPos, player.position[0], player.position[1]);
+			//gl.uniform2f(uniformPositionPlayerSize, player.size[0], player.size[1]);
+			//gl.uniform2f(uniformPositionBallPosition, ball.position[0], ball.position[1]);
+			//gl.uniform2f(uniformPositionBallSize, ball.size[0], ball.size[1]);
 			gl.uniform1f(uniformPositionLastHitTime, hitTime);
 			gl.uniform3fv(uniformPositionBallHits, ballHits);
 			gl.uniform3fv(uniformPositionPlayerHits, playerHits);
@@ -340,7 +347,11 @@ async function movementAndColorDemo() {
 			gl.uniform2f(uniformTranslation, 0.0, 0.0);
 			gl.uniform1f(uniformRotation, 0.0);
 			gl.uniform1i(uniformRenderMode, 0);
-			gl.uniform2f(uniformCameraPosition, (player.position[0] + ball.position[0]) / 2.0, (player.position[1] + ball.position[1]) / 2.0);
+
+			if (player != null && ball != null)
+			{
+				gl.uniform2f(uniformCameraPosition, (player.position[0] + ball.position[0]) / 2.0, (player.position[1] + ball.position[1]) / 2.0);
+			}
 
 			let screenAspect = canvas.width / canvas.height; //1.77
 			let cameraAspect = playAreaWidth / playAreaHeight; //0.5
@@ -366,16 +377,24 @@ async function movementAndColorDemo() {
 			gl.drawArrays(gl.TRIANGLES, 0, 6);
 			
 			//draw the ball
-			gl.uniform2f(uniformSize, ball.size[0] * 3.0, ball.size[1] * 3.0);
-			gl.uniform2f(uniformTranslation, ball.position[0], ball.position[1]);
-			gl.uniform1i(uniformRenderMode, 1);
-			gl.drawArrays(gl.TRIANGLES, 0, 6);
+			if (ball != null)
+			{
+				gl.uniform2f(uniformSize, ball.size[0] * 3.0, ball.size[1] * 3.0);
+				gl.uniform2f(uniformTranslation, ball.position[0], ball.position[1]);
+				gl.uniform1i(uniformRenderMode, 1);
+				gl.drawArrays(gl.TRIANGLES, 0, 6);
+			}
+
 
 			//draw the player
-			gl.uniform2f(uniformSize, player.size[0] * 3.0, player.size[1] * 3.0);
-			gl.uniform2f(uniformTranslation, player.position[0], player.position[1]);
-			//gl.uniform1i(uniformRenderMode, 1);
-			gl.drawArrays(gl.TRIANGLES, 0, 6);
+			if (player != null)
+			{
+				gl.uniform2f(uniformSize, player.size[0] * 3.0, player.size[1] * 3.0);
+				gl.uniform2f(uniformTranslation, player.position[0], player.position[1]);
+				//gl.uniform1i(uniformRenderMode, 1);
+				gl.drawArrays(gl.TRIANGLES, 0, 6);
+			}
+
 
 			rects.forEach(rect => {
 				gl.uniform2f(uniformSize, rect.size[0], rect.size[1]);

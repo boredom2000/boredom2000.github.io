@@ -30,11 +30,12 @@ class GamePlayer
 
     update(dt, movementVector)
     {
-        let directionX = movementVector.x;
-        let directionY = movementVector.y;
+        //this.force = movementVector * 3.0;
+        this.velocity[0] += movementVector.x * dt * 3.0;
+        this.velocity[1] += movementVector.y * dt * 3.0;
 
-        this.position[0] += directionX * dt;
-        this.position[1] += directionY * dt;
+        this.velocity[0] -= (this.velocity[0] * 1.5) * dt;
+        this.velocity[1] -= (this.velocity[1] * 1.5) * dt;
     }
 }
 
@@ -56,9 +57,12 @@ var waitingForNextRound = false;
 var nextHitIndex = 0;
 var DELAY_BETWEEN_HITS = 1000.0;
 var DELAY_BETWEEN_ROUNDS = 2000.0;
+var MINIMUM_CAMERA_HEIGHT = 2.0;
+var MINIMUM_CAMERA_WIDTH = 1.0;
 var HIT_INDEX_MAX = 8;
-var player = new GamePlayer([0.0, -0.5], [0.05, 0.05], [0,0]);
-var ball = new GameBall([0.0, 0.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
+var ball = new GameBall([0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.1, 0.1]);
+//r ball = new GameBall([0.0, 0.0], [0.05, 1.5], [0.0, 0.0], [0.0, 0.0]);
+player = new GamePlayer([0.0, -0.5], [0.05, 0.05], [0,0]);
 var ballHits = new Float32Array([-99999.0, 0.0, 0.0,
                 -99999.0, 0.0, 0.0,
                 -99999.0, 0.0, 0.0,
@@ -93,14 +97,17 @@ function updateGameState(time, dt)
             return;
         }
 
-        ball = null;
-        ball = new GameBall([0.0, 0.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
+        
+        ball = new GameBall([0.0, 0.0], [0.05, 1.5], [0.0, 0.0], [0.0, 0.0]);
+        player = new GamePlayer([0.0, -0.5], [0.05, 0.05], [0,0]);
         waitingForNextRound = false;
         currentNumberOfHits = 0;
         createTextTexture(gl, getTailingZeroNumber(currentNumberOfHits));
     }
     else if (ball.position[1] < -1.0)
     {
+        ball = null;
+        player = null;
         timeBeforeNextRound = time + DELAY_BETWEEN_ROUNDS;
         waitingForNextRound = true;
         return;
@@ -141,6 +148,11 @@ function updateGameState(time, dt)
     }
 
     handleCollision(ball, rects, time, dt);
+    handleCollision(player, rects, time, dt);
+
+    playAreaHeight = Math.max(MINIMUM_CAMERA_HEIGHT, Math.abs(ball.position[1] - player.position[1]) + 1.0);
+
+    playAreaWidth = (MINIMUM_CAMERA_WIDTH / MINIMUM_CAMERA_HEIGHT) * playAreaHeight;
 }
 
 function getTailingZeroNumber(num)
@@ -241,6 +253,10 @@ function handleCollisionBCK(ball, rects, time, dt) {
 
 
 function handleCollision(ball, rects, time, dt) {
+  if (ball == null)
+  {
+    return;
+  }
   const EPS = 0.001;
 
   // integrate velocity (predict motion)

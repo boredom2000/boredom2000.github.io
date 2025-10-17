@@ -48,7 +48,7 @@ function updateMovementVector() {
     movementVector.y = y;
 
     // Optional: Log the result
-    console.log(`Vector: (${movementVector.x}, ${movementVector.y})`);
+    //console.log(`Vector: (${movementVector.x}, ${movementVector.y})`);
 
     // In a game or animation loop, you'd typically use this vector here
     // to apply movement, or a loop would check this global variable.

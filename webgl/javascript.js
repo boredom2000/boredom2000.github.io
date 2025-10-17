@@ -405,7 +405,7 @@ async function movementAndColorDemo() {
 				gl.uniform2f(uniformSize, rect.size[0], rect.size[1]);
 				gl.uniform2f(uniformPadding, 0.2, 0.2);
 				gl.uniform2f(uniformTranslation, rect.position[0], rect.position[1]);
-				gl.uniform1f(uniformRotation, -rect.rotation * 0.0055555555555556 * Math.PI);
+				gl.uniform1f(uniformRotation, rect.rotation * 0.0055555555555556 * Math.PI);
 				gl.uniform1i(uniformRenderMode, 2);
 				gl.drawArrays(gl.TRIANGLES, 0, 6);
 			});

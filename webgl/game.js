@@ -1,3 +1,17 @@
+const CollisionTarget = Object.freeze({
+  All: 0,
+  Ball: 1,
+  Player: 2
+})
+
+const CollisionType = Object.freeze({
+  Bounce: 0,
+  Death: 1,
+  Gravity: 2,
+  Trigger: 3
+})
+
+
 class GameBall
 {
     constructor(position, velocity, force, size)
@@ -6,6 +20,7 @@ class GameBall
         this.velocity = velocity;
         this.force = force;
         this.size = size;
+        this.type = CollisionTarget.Ball;
     }
 
     isAlive() {
@@ -26,6 +41,7 @@ class GamePlayer
         this.position = position;
         this.size = size;
         this.velocity = velocity;
+        this.type = CollisionTarget.Player;
     }
 
     update(dt, movementVector)
@@ -41,11 +57,12 @@ class GamePlayer
 
 class RectCollision
 {
-    constructor(position, size, rotation)
+    constructor(position, size, rotation, type)
     {
         this.position = position;
         this.rotation = rotation;
         this.size = size;
+        this.type = type;
     }   
 }
 
@@ -82,11 +99,12 @@ var playerHits = new Float32Array([-99999.0, 0.0, 0.0,
                 -99999.0, 0.0, 0.0]);               
 
 var rects = [];
-rects.push(new RectCollision([-1.5, 0.5], [1.0, 1.0], 0.0));
-rects.push(new RectCollision([1.5, -0.5], [1.0, 1.0], 0.0));
-rects.push(new RectCollision([0, 3.0], [6.0, 0.3], 0.0));
-rects.push(new RectCollision([3.0, 0.0], [0.3, 6.0], 0.0));
-rects.push(new RectCollision([-3.0, 0.0], [0.3, 6.0], 0.0));
+rects.push(new RectCollision([-1.5, 0.5], [1.0, 1.0], 25, CollisionTarget.All, CollisionType.Bounce));
+rects.push(new RectCollision([1.5, 0.5], [1.0, 1.0], -25, CollisionTarget.Ball, CollisionType.Bounce));
+//rects.push(new RectCollision([1.5, -0.5], [1.0, 1.0], -10.0, CollisionTarget.All, CollisionType.Bounce));
+rects.push(new RectCollision([0, 3.0], [6.0, 0.3], 0.0, CollisionTarget.All, CollisionType.Bounce));
+rects.push(new RectCollision([3.0, 0.0], [0.3, 6.0], 0.0, CollisionTarget.All, CollisionType.Bounce));
+rects.push(new RectCollision([-3.0, 0.0], [0.3, 6.0], 0.0, CollisionTarget.All, CollisionType.Bounce));
 
 function updateGameState(time, dt)
 {
@@ -168,88 +186,6 @@ function getTailingZeroNumber(num)
     }
 }
 
-function handleCollisionBCK(ball, rects, time, dt) {
-  const EPS = 0.001;
-
-  for (const r of rects) {
-    const cos = Math.cos(-r.rotation);
-    const sin = Math.sin(-r.rotation);
-
-    // --- 1. translate ball into rect local space ---
-    const relX = ball.position[0] - r.position[0];
-    const relY = ball.position[1] - r.position[1];
-    const localX = relX * cos - relY * sin;
-    const localY = relX * sin + relY * cos;
-
-    const hw = r.size[0] / 2;
-    const hh = r.size[1] / 2;
-
-    // --- 2. clamp to find closest point ---
-    const clampedX = Math.max(-hw, Math.min(localX, hw));
-    const clampedY = Math.max(-hh, Math.min(localY, hh));
-
-    // --- 3. distance to closest point ---
-    let dx = localX - clampedX;
-    let dy = localY - clampedY;
-    let distSq = dx * dx + dy * dy;
-
-    const radius = ball.size[0];
-    const radiusSq = radius * radius;
-
-    // --- 4. check collision ---
-    if (distSq < radiusSq) {
-      let dist = Math.sqrt(distSq);
-
-      let localNormal;
-      if (dist > 1e-6) {
-        // ✅ normal from circle center to closest point
-        localNormal = { x: dx / dist, y: dy / dist };
-      } else {
-        // 🧩 ball is *inside* the rectangle → pick nearest face normal
-        const dxMin = hw - Math.abs(localX);
-        const dyMin = hh - Math.abs(localY);
-
-        console.log('penetration=' + penetration);
-        console.log('normal x=' + worldNormal.x + ', y=' + worldNormal.y);
-
-        if (dxMin < dyMin) {
-          // Closer to left/right wall
-          localNormal = { x: Math.sign(localX), y: 0 };
-          dist = dxMin;
-        } else {
-          // Closer to top/bottom wall
-          localNormal = { x: 0, y: Math.sign(localY) };
-          dist = dyMin;
-        }
-      }
-
-      // --- 5. transform normal to world space ---
-      const worldNormal = {
-        x: localNormal.x * cos + localNormal.y * -sin,
-        y: localNormal.x * sin + localNormal.y * cos
-      };
-
-      // --- 6. push ball out ---
-      const penetration = radius - dist;
-      ball.position[0] += worldNormal.x * (penetration + EPS);
-      ball.position[1] += worldNormal.y * (penetration + EPS);
-
-      // --- 7. reflect velocity ---
-      const vx = ball.velocity[0];
-      const vy = ball.velocity[1];
-      const dot = vx * worldNormal.x + vy * worldNormal.y;
-      if (dot < 0) {
-        ball.velocity[0] -= 2 * dot * worldNormal.x;
-        ball.velocity[1] -= 2 * dot * worldNormal.y;
-      }
-
-      // --- 8. damping ---
-      ball.velocity[0] *= 0.9;
-      ball.velocity[1] *= 0.9;
-    }
-  }
-}
-
 
 
 
@@ -267,8 +203,14 @@ function handleCollision(ball, rects, time, dt) {
   const moveY = vy * dt;
 
   for (const r of rects) {
-    const cos = Math.cos(-r.rotation);
-    const sin = Math.sin(-r.rotation);
+
+    if (ball.type != r.type && r.type != CollisionTarget.All)
+    {
+      continue;
+    }
+
+    const cos = Math.cos(r.rotation * 0.0055555555555556 * Math.PI);
+    const sin = Math.sin(r.rotation * 0.0055555555555556 * Math.PI);
 
     // --- 1. transform motion into rect local space ---
     const relX = ball.position[0] - r.position[0];
@@ -304,24 +246,30 @@ function handleCollision(ball, rects, time, dt) {
 
     // --- 4. if entry is before exit and within dt (0–1), we have a hit ---
     if (entryTime >= 0 && entryTime <= 1 && entryTime < exitTime) {
-        console.log('hit');
+        //console.log('hit');
       // move ball to impact point
       const hitX = localPosX + localVelX * entryTime;
       const hitY = localPosY + localVelY * entryTime;
 
       // --- 5. determine which axis collided first ---
+      //console.log('localVelX=' + localVelX + " localVelY=" + localVelY);
       let localNormal = { x: 0, y: 0 };
       if (tminX > tminY) {
         localNormal.x = Math.sign(localVelX) * -1;
       } else {
         localNormal.y = Math.sign(localVelY) * -1;
       }
-
+      //console.log('localNormal=' + localNormal.x + " " + localNormal.y);
+      const cos2 = Math.cos(-r.rotation * 0.0055555555555556 * Math.PI);
+      const sin2 = Math.sin(-r.rotation * 0.0055555555555556 * Math.PI);
       // --- 6. transform normal back to world space ---
       const worldNormal = {
-        x: localNormal.x * cos + localNormal.y * -sin,
-        y: localNormal.x * sin + localNormal.y * cos
+        x: localNormal.x * cos2 + localNormal.y * -sin2,
+        y: localNormal.x * sin2 + localNormal.y * cos2
       };
+
+      //console.log('worldNormal=' + worldNormal.x + " " + worldNormal.y);
+      //console.log('vx=' + vx + " vy" + vy);
 
       // --- 7. move to collision point (in world space) ---
       ball.position[0] = r.position[0] + (hitX * cos + hitY * sin) + worldNormal.x * EPS;
@@ -331,6 +279,10 @@ function handleCollision(ball, rects, time, dt) {
       const dot = vx * worldNormal.x + vy * worldNormal.y;
       ball.velocity[0] = vx - 2 * dot * worldNormal.x;
       ball.velocity[1] = vy - 2 * dot * worldNormal.y;
+      //ball.velocity[0] = worldNormal.x;
+      //ball.velocity[1] = worldNormal.y;
+
+      //console.log('ball.velocity[0]=' + ball.velocity[0] + " ball.velocity[1]" + ball.velocity[1]);
 
       // --- 9. apply damping (optional) ---
       ball.velocity[0] *= 0.9;

@@ -229,7 +229,7 @@ void main() {
 
         finalColor += addedColor * mask;
 
-        if (false)
+        if (true)
         { //debug pink collision
             vec2 trueShape = uSize / (uSize + uPadding);
             vec2 trueShapeUVStart = (vec2(1.0, 1.0) - trueShape) * vec2(0.5, 0.5);
@@ -272,7 +272,7 @@ void main() {
 
         finalColor += addedColor * mask;
 
-        if (false)
+        if (true)
         { //debug pink collision
             vec2 trueShape = uSize / (uSize + uPadding);
             vec2 trueShapeUVStart = (vec2(1.0, 1.0) - trueShape) * vec2(0.5, 0.5);

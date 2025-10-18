@@ -183,6 +183,7 @@ async function movementAndColorDemo() {
 	const uniformToClipSize = gl.getUniformLocation(movementAndColorProgram, 'uToClipSpace');
 	const uniformCameraPosition = gl.getUniformLocation(movementAndColorProgram, 'uCameraPosition');
 	const uniformCameraSize = gl.getUniformLocation(movementAndColorProgram, 'uCameraSize');
+	const uniformRatio = gl.getUniformLocation(movementAndColorProgram, 'uRatio');
 
 	if (uniformPositionPlayerPos === null || uniformPositionPlayerSize === null || uniformPositionTime === null
 		|| uniformPositionBallPosition === null || uniformPositionBallSize === null ||
@@ -337,6 +338,7 @@ async function movementAndColorDemo() {
 			// Set uniforms shared across frame...
 			
 			gl.uniform1f(uniformPositionTime, time / 1000.0);
+			
 			//gl.uniform2f(uniformPositionPlayerPos, player.position[0], player.position[1]);
 			//gl.uniform2f(uniformPositionPlayerSize, player.size[0], player.size[1]);
 			//gl.uniform2f(uniformPositionBallPosition, ball.position[0], ball.position[1]);
@@ -377,10 +379,19 @@ async function movementAndColorDemo() {
 
 			gl.bindVertexArray(backgroundVertexArray);
 			gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+			let adjustedTime = time / 1000.0;
 			
 			//draw the ball
 			if (ball != null)
 			{
+				let hitRatio
+				if (adjustedTime < ball.hitTime + 1.0)
+				{
+					hitRatio = (adjustedTime - ball.hitTime) / 1.0;
+				}
+				gl.uniform1f(uniformRatio, clamp(hitRatio, 0.0, 1.0));
+
 				gl.uniform2f(uniformSize, ball.size[0] * 3.0, ball.size[1] * 3.0);
 				gl.uniform2f(uniformPadding, 0.2, 0.2);
 				
@@ -393,15 +404,29 @@ async function movementAndColorDemo() {
 			//draw the player
 			if (player != null)
 			{
+				let hitRatio;
+				if (adjustedTime < player.hitTime + 1.0)
+				{
+					hitRatio = (adjustedTime - player.hitTime) / 1.0;
+				}
+				gl.uniform1f(uniformRatio, clamp(hitRatio, 0.0, 1.0));
+
 				gl.uniform2f(uniformSize, player.size[0] * 3.0, player.size[1] * 3.0);
 				gl.uniform2f(uniformPadding, 0.2, 0.2);
 				gl.uniform2f(uniformTranslation, player.position[0], player.position[1]);
-				//gl.uniform1i(uniformRenderMode, 1);
+				gl.uniform1i(uniformRenderMode, 1);
 				gl.drawArrays(gl.TRIANGLES, 0, 6);
 			}
 
 
 			rects.forEach(rect => {
+				let hitRatio;
+				if (adjustedTime < rect.hitTime + 1.0)
+				{
+					hitRatio = (adjustedTime - rect.hitTime) / 1.0;
+				}
+				gl.uniform1f(uniformRatio, clamp(hitRatio, 0.0, 1.0));
+
 				gl.uniform2f(uniformSize, rect.size[0], rect.size[1]);
 				gl.uniform2f(uniformPadding, 0.2, 0.2);
 				gl.uniform2f(uniformTranslation, rect.position[0], rect.position[1]);
@@ -409,6 +434,27 @@ async function movementAndColorDemo() {
 				gl.uniform1i(uniformRenderMode, 2);
 				gl.drawArrays(gl.TRIANGLES, 0, 6);
 			});
+
+			let timeMS = time / 1000.0;
+			for (let i = explosions.length - 1; i >= 0; i--) 
+			{
+				let explosion = explosions[i];
+				if (timeMS > explosion.timeEnd)
+				{
+					explosions.splice(i, 1);
+					continue;
+				}
+				
+				let ratio = (timeMS - explosion.timeStart) / (explosion.timeEnd - explosion.timeStart);
+				let size = explosion.sizeStart + (explosion.sizeEnd - explosion.sizeStart) * ratio;
+				
+				gl.uniform1f(uniformRatio, ratio);
+				gl.uniform2f(uniformSize, size, size);
+				gl.uniform2f(uniformPadding, 0.2, 0.2);
+				gl.uniform2f(uniformTranslation, explosion.position[0], explosion.position[1]);
+				gl.uniform1i(uniformRenderMode, 3);
+				gl.drawArrays(gl.TRIANGLES, 0, 6);
+			}
 		}
 
 	}

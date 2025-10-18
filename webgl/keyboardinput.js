@@ -11,8 +11,7 @@ const keysPressed = {
     'd': false
 };
 
-// The resulting vector (x, y)
-let movementVector = { x: 0, y: 0 };
+
 
 /**
  * Calculates the movement vector based on the currently pressed keys.

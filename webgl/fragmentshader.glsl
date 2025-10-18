@@ -13,8 +13,10 @@ uniform vec2 uSize;
 uniform vec2 uPadding;
 
 uniform highp float uTime;
+uniform float uRatio;
 uniform vec2 uBallPosition;
 uniform vec2 uBallSize;
+uniform vec2 uTranslation;
 uniform highp float uLastHitTime;
 uniform highp vec3 uBallHits[8];
 uniform highp vec3 uPlayerHits[8];
@@ -35,7 +37,7 @@ vec3 palette( float t ) {
     return a + b*cos( 6.28318*(c*t+d) );
 }
 
-vec3 explosionRing(vec2 uv, vec2 explosionPosition, vec2 playerPosition, vec2 size, float time, float timeExplosion)
+vec3 explosionRingOld(vec2 uv, vec2 explosionPosition, vec2 playerPosition, vec2 size, float time, float timeExplosion)
 {
     float distanceFromExplosion = distance(explosionPosition, uv);
     float timeSinceHit = (time - timeExplosion);
@@ -49,13 +51,26 @@ vec3 explosionRing(vec2 uv, vec2 explosionPosition, vec2 playerPosition, vec2 si
     return explosion * col;
 }
 
+vec3 explosionRing(vec2 uv, float progress, vec2 pos, float time)
+{
+    float distanceFromExplosion = distance(uv, vec2(0.5, 0.5));
+    float explosionRadius = progress * 0.5;
+    float explosionThickness = clamp(0.0, 1.0, (smoothstep(0.0, 0.02, progress * 3.0) - smoothstep(0.5, 2.5, progress * 3.0)) * 0.4);
+    float explosion = smoothstep(explosionRadius - explosionThickness, explosionRadius, distanceFromExplosion) - smoothstep(explosionRadius, explosionRadius + explosionThickness, distanceFromExplosion);
+
+    explosion = pow(0.1 / (1.0 - explosion), 1.2) * explosion; //smoothstepping glowy
+    vec3 col = palette(length(pos) + 2.0*.4 - time*0.3);
+
+    return explosion * col;
+}
+
 void main() {
     vec2 uv = (fragmentUV * 2.0 - vec2(1.0, 1.0));
     vec2 uv0 = fragmentUV - (uCameraPosition * uToClipSpace);
     vec3 finalColor = vec3(0.0);
 
     float lastHitTime = uTime - uLastHitTime;
-    float flash = smoothstep(0.0, 0.2, lastHitTime) - smoothstep(0.2, 1.0, lastHitTime);
+    float flash = smoothstep(0.0, 0.2, uRatio) - smoothstep(0.2, 1.0, uRatio);
 
     float distanceFromCursor = distance(uPlayerPosition.xy, fragmentUV.xy);
     float fractDistance = fract(distanceFromCursor * 5.0 - uTime * 0.2);
@@ -87,10 +102,10 @@ void main() {
 
         //border = sin(border*8. + uTime)/8.; //alternating from -1 to 1
         //border = abs(border); //alternating from 0 to 1
-        grid = pow(0.02 / (1.0 - grid), 1.2); //smoothstepping glowy
+        grid = pow(0.01 / (1.0 - grid), 1.2); //smoothstepping glowy
         vec3 col = palette(uv0.x + 4.0*.4 - uTime*0.13); //color
 
-        finalColor += grid * col;
+        finalColor += (grid * col);
     }
 
     //////////////GRID2 (try to do parallax here)
@@ -102,19 +117,19 @@ void main() {
 
         //border = sin(border*8. + uTime)/8.; //alternating from -1 to 1
         //border = abs(border); //alternating from 0 to 1
-        grid = pow(0.03 / (1.0 - grid), 1.2); //smoothstepping glowy
-        vec3 col = palette(length(uv0.y) + 4.0*.4 - uTime*0.1); //color
+        grid = pow(0.005 / (1.0 - grid), 1.2); //smoothstepping glowy
+        vec3 col = palette(length(uv0.y) + 2.0*.4 - uTime*0.1); //color
 
-        finalColor += grid * col;
+        finalColor += (grid * col);
     }
     
     ///////EXPLOSION
-    if (uRenderMode == 0) {
+    if (false && uRenderMode == 0) {
         for (int i = 0; i<8; i++)
         {
             {
                 //explosionRing(vec2 uv, vec2 explosionPosition, vec2 playerPosition, vec2 size, float time, float timeExplosion)
-                finalColor += explosionRing(fragmentUV, uPlayerHits[i].yz, fragmentUV - uPlayerHits[i].yz, uPlayerSize, uTime, uPlayerHits[i].x);
+                //finalColor += explosionRingOld(fragmentUV, uPlayerHits[i].yz, fragmentUV - uPlayerHits[i].yz, uPlayerSize, uTime, uPlayerHits[i].x);
             }
 
         }
@@ -284,6 +299,15 @@ void main() {
             finalColor += insideX * insideY * vec3(1.0, 0.0, 1.0);
         }
     }
+
+    if (uRenderMode == 3) {
+        {
+            //explosionRing(vec2 uv, vec2 explosionPosition, vec2 playerPosition, vec2 size, float time, float timeExplosion)
+            finalColor += explosionRing(fragmentUV, uRatio, uTranslation, uTime);
+        }
+    }
     
     outputColor = vec4(finalColor, dummy1);
 }
+
+//vec3 explosionRing(vec2 uv, vec2 size, float progress, float timeExplosion, vec2 pos)

@@ -1,14 +1,14 @@
 const CollisionTarget = Object.freeze({
-  All: 0,
-  Ball: 1,
-  Player: 2
+	All: 0,
+	Ball: 1,
+	Player: 2
 })
 
 const CollisionType = Object.freeze({
-  Bounce: 0,
-  Death: 1,
-  Gravity: 2,
-  Trigger: 3
+	Bounce: 'BOUNCE',
+	Death: 'DEATH',
+	Gravity: 'GRAVITY',
+	Trigger: 'TRIGGER'
 })
 
 
@@ -20,11 +20,12 @@ class GameBall
 		this.velocity = velocity;
 		this.force = force;
 		this.size = size;
-		this.type = CollisionTarget.Ball;
+		this.target = CollisionTarget.Ball;
 		this.hitTime = -9999.0
 	}
 
-	isAlive() {
+	isAlive()
+	{
 		return this.timeRemaining > 0;
 	}
 
@@ -42,7 +43,7 @@ class GamePlayer
 		this.position = position;
 		this.size = size;
 		this.velocity = velocity;
-		this.type = CollisionTarget.Player;
+		this.target = CollisionTarget.Player;
 		this.hitTime = -9999.0
 	}
 
@@ -59,19 +60,20 @@ class GamePlayer
 
 class RectCollision
 {
-	constructor(position, size, rotation, type)
+	constructor(position, size, rotation, target, type)
 	{
 		this.position = position;
 		this.rotation = rotation;
 		this.size = size;
 		this.type = type;
+		this.target = target;
 		this.hitTime = -9999.0
-	}   
+	}
 }
 
 class Explosion
 {
-	constructor (position, sizeStart, sizeEnd, timeStart, timeEnd)
+	constructor(position, sizeStart, sizeEnd, timeStart, timeEnd)
 	{
 		this.position = position;
 		this.sizeStart = sizeStart;
@@ -94,33 +96,38 @@ var MINIMUM_CAMERA_WIDTH = 2.0;
 var HIT_INDEX_MAX = 8;
 //var ball = new GameBall([0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.1, 0.1]);
 var ball = new GameBall([0.0, 0.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
-player = new GamePlayer([0.0, -0.5], [0.05, 0.05], [0,0]);
+player = new GamePlayer([0.0, -0.5], [0.05, 0.05], [0, 0]);
 var ballHits = new Float32Array([-99999.0, 0.0, 0.0,
-				-99999.0, 0.0, 0.0,
-				-99999.0, 0.0, 0.0,
-				-99999.0, 0.0, 0.0,
-				-99999.0, 0.0, 0.0,
-				-99999.0, 0.0, 0.0,
-				-99999.0, 0.0, 0.0,
-				-99999.0, 0.0, 0.0]);
+-99999.0, 0.0, 0.0,
+-99999.0, 0.0, 0.0,
+-99999.0, 0.0, 0.0,
+-99999.0, 0.0, 0.0,
+-99999.0, 0.0, 0.0,
+-99999.0, 0.0, 0.0,
+-99999.0, 0.0, 0.0]);
 
 var playerHits = new Float32Array([-99999.0, 0.0, 0.0,
-				-99999.0, 0.0, 0.0,
-				-99999.0, 0.0, 0.0,
-				-99999.0, 0.0, 0.0,
-				-99999.0, 0.0, 0.0,
-				-99999.0, 0.0, 0.0,
-				-99999.0, 0.0, 0.0,
-				-99999.0, 0.0, 0.0]);               
+-99999.0, 0.0, 0.0,
+-99999.0, 0.0, 0.0,
+-99999.0, 0.0, 0.0,
+-99999.0, 0.0, 0.0,
+-99999.0, 0.0, 0.0,
+-99999.0, 0.0, 0.0,
+-99999.0, 0.0, 0.0]);
 
 var rects = [];
 rects.push(new RectCollision([-1.5, 0.5], [1.0, 1.0], 25, CollisionTarget.All, CollisionType.Bounce));
-rects.push(new RectCollision([1.5, 0.5], [1.0, 1.0], -25, CollisionTarget.Ball, CollisionType.Bounce));
-rects.push(new RectCollision([-1, 2.5], [1.0, 1.0], -40, CollisionTarget.All, CollisionType.Bounce));
-rects.push(new RectCollision([1, 2.5], [1.0, 1.0], 40, CollisionTarget.Ball, CollisionType.Bounce));
+rects.push(new RectCollision([1.5, 0.5], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
+rects.push(new RectCollision([3.0, 1.0], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
+rects.push(new RectCollision([4, 5, 1.5], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
+rects.push(new RectCollision([6.0, 2.0], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
+rects.push(new RectCollision([7.5, 2.5], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
+rects.push(new RectCollision([9.0, 3.0], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
+rects.push(new RectCollision([-1, 2.5], [1.0, 1.0], -40, CollisionTarget.All, CollisionType.Death));
+rects.push(new RectCollision([1, 2.5], [1.0, 1.0], 40, CollisionTarget.All, CollisionType.Bounce));
 //rects.push(new RectCollision([1.5, -0.5], [1.0, 1.0], -10.0, CollisionTarget.All, CollisionType.Bounce));
 rects.push(new RectCollision([0, 10.0], [6.0, 0.3], 0.0, CollisionTarget.All, CollisionType.Bounce));
-rects.push(new RectCollision([3.0, 3.0], [0.5, 6.0], 0.0, CollisionTarget.All, CollisionType.Bounce));
+rects.push(new RectCollision([15.0, 3.0], [0.5, 6.0], 0.0, CollisionTarget.All, CollisionType.Bounce));
 rects.push(new RectCollision([-3.0, 3.0], [0.5, 6.0], 0.0, CollisionTarget.All, CollisionType.Bounce));
 
 var explosions = [];
@@ -134,20 +141,17 @@ function updateGameState(time, dt)
 			return;
 		}
 
-		
+
 		//ball = new GameBall([0.0, 0.0], [0.05, 1.5], [0.0, 0.0], [0.0, 0.0]);
 		ball = new GameBall([0.0, 0.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
-		player = new GamePlayer([0.0, -0.5], [0.05, 0.05], [0,0]);
+		player = new GamePlayer([0.0, -0.5], [0.05, 0.05], [0, 0]);
 		waitingForNextRound = false;
 		currentNumberOfHits = 0;
 		createTextTexture(gl, getTailingZeroNumber(currentNumberOfHits));
 	}
 	else if (ball.position[1] < -1.0)
 	{
-		ball = null;
-		player = null;
-		timeBeforeNextRound = time + DELAY_BETWEEN_ROUNDS;
-		waitingForNextRound = true;
+		handleBallDeath(ball, time);
 		return;
 	}
 
@@ -168,11 +172,11 @@ function updateGameState(time, dt)
 			timeBeforeNextCheck = time + DELAY_BETWEEN_HITS;
 
 			ballHits[nextHitIndex] = time / 1000.0;
-			ballHits[nextHitIndex+1] = ball.position[0];
-			ballHits[nextHitIndex+2] = ball.position[1];
+			ballHits[nextHitIndex + 1] = ball.position[0];
+			ballHits[nextHitIndex + 2] = ball.position[1];
 			playerHits[nextHitIndex] = time / 1000.0;
-			playerHits[nextHitIndex+1] = player.position[0];
-			playerHits[nextHitIndex+2] = player.position[1];
+			playerHits[nextHitIndex + 1] = player.position[0];
+			playerHits[nextHitIndex + 2] = player.position[1];
 			nextHitIndex = (nextHitIndex + 3) % 24;
 
 			hitTime = time / 1000.0;
@@ -183,7 +187,7 @@ function updateGameState(time, dt)
 			var hitPosX = (ball.position[0] + player.position[0]) * 0.5;
 			var hitPosY = (ball.position[1] + player.position[1]) * 0.5;
 
-			var explosion = new Explosion([hitPosX, hitPosY], 0.2, 2.0, time / 1000.0, (time + 1000.0) / 1000,0);
+			var explosion = new Explosion([hitPosX, hitPosY], 0.2, 2.0, time / 1000.0, (time + 1000.0) / 1000, 0);
 			explosions.push(explosion);
 
 			currentNumberOfHits++;
@@ -192,8 +196,15 @@ function updateGameState(time, dt)
 		}
 	}
 
-	handleCollision(ball, rects, time, dt);
-	handleCollision(player, rects, time, dt);
+	if (handleCollision(ball, rects, time, dt))
+	{
+		return;
+	}
+
+	if (handleCollision(player, rects, time, dt))
+	{
+		return;
+	}
 
 	playAreaHeight = Math.max(MINIMUM_CAMERA_HEIGHT, Math.abs(ball.position[1] - player.position[1]) + 1.0);
 
@@ -215,114 +226,160 @@ function getTailingZeroNumber(num)
 
 
 
-function handleCollision(ball, rects, time, dt) {
-  if (ball == null)
-  {
-	return;
-  }
-  const EPS = 0.001;
-
-  // integrate velocity (predict motion)
-  const vx = ball.velocity[0];
-  const vy = ball.velocity[1];
-  const moveX = vx * dt;
-  const moveY = vy * dt;
-
-  for (const r of rects) {
-
-	if (ball.type != r.type && r.type != CollisionTarget.All)
+function handleCollision(ball, rects, time, dt)
+{
+	if (ball == null)
 	{
-	  continue;
+		return;
+	}
+	const EPS = 0.001;
+
+	// integrate velocity (predict motion)
+	const vx = ball.velocity[0];
+	const vy = ball.velocity[1];
+	const moveX = vx * dt;
+	const moveY = vy * dt;
+
+	for (const r of rects)
+	{
+
+		if (ball.target != r.target && r.target != CollisionTarget.All)
+		{
+			continue;
+		}
+
+		const cos = Math.cos(r.rotation * 0.0055555555555556 * Math.PI);
+		const sin = Math.sin(r.rotation * 0.0055555555555556 * Math.PI);
+
+		// --- 1. transform motion into rect local space ---
+		const relX = ball.position[0] - r.position[0];
+		const relY = ball.position[1] - r.position[1];
+
+		const localPosX = relX * cos - relY * sin;
+		const localPosY = relX * sin + relY * cos;
+
+		const localVelX = moveX * cos - moveY * sin;
+		const localVelY = moveX * sin + moveY * cos;
+
+		const hw = r.size[0] / 2;
+		const hh = r.size[1] / 2;
+		const radius = ball.size[0];
+
+		// --- 2. expand rectangle by radius ---
+		const expandedHW = hw + radius;
+		const expandedHH = hh + radius;
+
+		// --- 3. compute ray entry/exit times (swept AABB) ---
+		const t1x = (-expandedHW - localPosX) / (localVelX || EPS);
+		const t2x = (expandedHW - localPosX) / (localVelX || EPS);
+		const t1y = (-expandedHH - localPosY) / (localVelY || EPS);
+		const t2y = (expandedHH - localPosY) / (localVelY || EPS);
+
+		const tminX = Math.min(t1x, t2x);
+		const tmaxX = Math.max(t1x, t2x);
+		const tminY = Math.min(t1y, t2y);
+		const tmaxY = Math.max(t1y, t2y);
+
+		const entryTime = Math.max(tminX, tminY);
+		const exitTime = Math.min(tmaxX, tmaxY);
+
+		// --- 4. if entry is before exit aasnd within dt (0–1), we have a hit ---
+		if (entryTime >= 0 && entryTime <= 1 && entryTime < exitTime)
+		{
+			if (r.type == CollisionType.Death)
+			{
+				if (ball.target == CollisionTarget.Ball)
+				{
+					handleBallDeath(ball, time);
+				}
+				else if (ball.target == CollisionTarget.Player)
+				{
+					handlePlayerDeath(ball, time);
+				}
+				return true;
+			}
+
+			console.log('cllision with rect of type ' + r.type)
+			//console.log('hit');
+			// move ball to impact point
+			const hitX = localPosX + localVelX * entryTime;
+			const hitY = localPosY + localVelY * entryTime;
+
+			// --- 5. determine which axis collided first ---
+			//console.log('localVelX=' + localVelX + " localVelY=" + localVelY);
+			let localNormal = { x: 0, y: 0 };
+			if (tminX > tminY)
+			{
+				localNormal.x = Math.sign(localVelX) * -1;
+			} else
+			{
+				localNormal.y = Math.sign(localVelY) * -1;
+			}
+			//console.log('localNormal=' + localNormal.x + " " + localNormal.y);
+			const cos2 = Math.cos(-r.rotation * 0.0055555555555556 * Math.PI);
+			const sin2 = Math.sin(-r.rotation * 0.0055555555555556 * Math.PI);
+			// --- 6. transform normal back to world space ---
+			const worldNormal = {
+				x: localNormal.x * cos2 + localNormal.y * -sin2,
+				y: localNormal.x * sin2 + localNormal.y * cos2
+			};
+
+			//console.log('worldNormal=' + worldNormal.x + " " + worldNormal.y);
+			//console.log('vx=' + vx + " vy" + vy);
+
+			// --- 7. move to collision point (in world space) ---
+			ball.position[0] = r.position[0] + (hitX * cos + hitY * sin) + worldNormal.x * EPS;
+			ball.position[1] = r.position[1] + (-hitX * sin + hitY * cos) + worldNormal.y * EPS;
+
+			// --- 8. reflect velocity ---
+			const dot = vx * worldNormal.x + vy * worldNormal.y;
+			ball.velocity[0] = vx - 2 * dot * worldNormal.x;
+			ball.velocity[1] = vy - 2 * dot * worldNormal.y;
+			//ball.velocity[0] = worldNormal.x;
+			//ball.velocity[1] = worldNormal.y;
+
+			//console.log('ball.velocity[0]=' + ball.velocity[0] + " ball.velocity[1]" + ball.velocity[1]);
+
+			// --- 9. apply damping (optional) ---
+			ball.velocity[0] *= 0.9;
+			ball.velocity[1] *= 0.9;
+
+			ball.hitTime = time / 1000.0
+			r.hitTime = time / 1000.0;
+
+			var explosion = new Explosion(ball.position, 0.2, 2.0, time / 1000.0, (time + 1000.0) / 1000, 0);
+			explosions.push(explosion);
+		}
 	}
 
-	const cos = Math.cos(r.rotation * 0.0055555555555556 * Math.PI);
-	const sin = Math.sin(r.rotation * 0.0055555555555556 * Math.PI);
+	// --- 11. move for remainder of dt if no hit ---
+	ball.position[0] += ball.velocity[0] * dt;
+	ball.position[1] += ball.velocity[1] * dt;
 
-	// --- 1. transform motion into rect local space ---
-	const relX = ball.position[0] - r.position[0];
-	const relY = ball.position[1] - r.position[1];
+	return false;
+}
 
-	const localPosX = relX * cos - relY * sin;
-	const localPosY = relX * sin + relY * cos;
+function handlePlayerDeath(player, time)
+{
+	handleDeath(time);
+}
 
-	const localVelX = moveX * cos - moveY * sin;
-	const localVelY = moveX * sin + moveY * cos;
+function handleBallDeath(ball, time)
+{
+	handleDeath(time);
+}
 
-	const hw = r.size[0] / 2;
-	const hh = r.size[1] / 2;
-	const radius = ball.size[0];
+function handleDeath(time)
+{
+	var explosion = new Explosion(ball.position, 0.2, 2.0, time / 1000.0, (time + 1000.0) / 1000, 0);
+	explosions.push(explosion);
 
-	// --- 2. expand rectangle by radius ---
-	const expandedHW = hw + radius;
-	const expandedHH = hh + radius;
+	explosion = new Explosion(player.position, 0.2, 2.0, time / 1000.0, (time + 1000.0) / 1000, 0);
+	explosions.push(explosion);
 
-	// --- 3. compute ray entry/exit times (swept AABB) ---
-	const t1x = (-expandedHW - localPosX) / (localVelX || EPS);
-	const t2x = ( expandedHW - localPosX) / (localVelX || EPS);
-	const t1y = (-expandedHH - localPosY) / (localVelY || EPS);
-	const t2y = ( expandedHH - localPosY) / (localVelY || EPS);
+	ball = null;
+	player = null;
 
-	const tminX = Math.min(t1x, t2x);
-	const tmaxX = Math.max(t1x, t2x);
-	const tminY = Math.min(t1y, t2y);
-	const tmaxY = Math.max(t1y, t2y);
-
-	const entryTime = Math.max(tminX, tminY);
-	const exitTime = Math.min(tmaxX, tmaxY);
-
-	// --- 4. if entry is before exit and within dt (0–1), we have a hit ---
-	if (entryTime >= 0 && entryTime <= 1 && entryTime < exitTime) {
-		//console.log('hit');
-	  // move ball to impact point
-	  const hitX = localPosX + localVelX * entryTime;
-	  const hitY = localPosY + localVelY * entryTime;
-
-	  // --- 5. determine which axis collided first ---
-	  //console.log('localVelX=' + localVelX + " localVelY=" + localVelY);
-	  let localNormal = { x: 0, y: 0 };
-	  if (tminX > tminY) {
-		localNormal.x = Math.sign(localVelX) * -1;
-	  } else {
-		localNormal.y = Math.sign(localVelY) * -1;
-	  }
-	  //console.log('localNormal=' + localNormal.x + " " + localNormal.y);
-	  const cos2 = Math.cos(-r.rotation * 0.0055555555555556 * Math.PI);
-	  const sin2 = Math.sin(-r.rotation * 0.0055555555555556 * Math.PI);
-	  // --- 6. transform normal back to world space ---
-	  const worldNormal = {
-		x: localNormal.x * cos2 + localNormal.y * -sin2,
-		y: localNormal.x * sin2 + localNormal.y * cos2
-	  };
-
-	  //console.log('worldNormal=' + worldNormal.x + " " + worldNormal.y);
-	  //console.log('vx=' + vx + " vy" + vy);
-
-	  // --- 7. move to collision point (in world space) ---
-	  ball.position[0] = r.position[0] + (hitX * cos + hitY * sin) + worldNormal.x * EPS;
-	  ball.position[1] = r.position[1] + (-hitX * sin + hitY * cos) + worldNormal.y * EPS;
-
-	  // --- 8. reflect velocity ---
-	  const dot = vx * worldNormal.x + vy * worldNormal.y;
-	  ball.velocity[0] = vx - 2 * dot * worldNormal.x;
-	  ball.velocity[1] = vy - 2 * dot * worldNormal.y;
-	  //ball.velocity[0] = worldNormal.x;
-	  //ball.velocity[1] = worldNormal.y;
-
-	  //console.log('ball.velocity[0]=' + ball.velocity[0] + " ball.velocity[1]" + ball.velocity[1]);
-
-	  // --- 9. apply damping (optional) ---
-	  ball.velocity[0] *= 0.9;
-	  ball.velocity[1] *= 0.9;
-
-		ball.hitTime = time / 1000.0
-		r.hitTime = time / 1000.0;
-
-		var explosion = new Explosion(ball.position, 0.2, 2.0, time / 1000.0, (time + 1000.0) / 1000,0);
-		explosions.push(explosion);
-	}
-  }
-
-  // --- 11. move for remainder of dt if no hit ---
-  ball.position[0] += ball.velocity[0] * dt;
-  ball.position[1] += ball.velocity[1] * dt;
+	timeBeforeNextRound = time + DELAY_BETWEEN_ROUNDS;
+	waitingForNextRound = true;
 }

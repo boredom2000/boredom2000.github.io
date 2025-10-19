@@ -13,7 +13,7 @@ function updateGamepad() {
     movementVector.x = x;
     movementVector.y = -y;
 
-    console.log("Left stick:", leftStick);
+    //console.log("Left stick:", leftStick);
   }
 
   requestAnimationFrame(updateGamepad);

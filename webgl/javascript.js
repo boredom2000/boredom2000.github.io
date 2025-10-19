@@ -184,6 +184,7 @@ async function movementAndColorDemo() {
 	const uniformCameraPosition = gl.getUniformLocation(movementAndColorProgram, 'uCameraPosition');
 	const uniformCameraSize = gl.getUniformLocation(movementAndColorProgram, 'uCameraSize');
 	const uniformRatio = gl.getUniformLocation(movementAndColorProgram, 'uRatio');
+	const uniformColorMode = gl.getUniformLocation(movementAndColorProgram, 'uColorMode');
 
 	if (uniformPositionPlayerPos === null || uniformPositionPlayerSize === null || uniformPositionTime === null
 		|| uniformPositionBallPosition === null || uniformPositionBallSize === null ||
@@ -351,6 +352,7 @@ async function movementAndColorDemo() {
 			gl.uniform2f(uniformTranslation, 0.0, 0.0);
 			gl.uniform1f(uniformRotation, 0.0);
 			gl.uniform1i(uniformRenderMode, 0);
+			gl.uniform1i(uniformColorMode, 0);
 
 			if (player != null && ball != null)
 			{
@@ -426,6 +428,15 @@ async function movementAndColorDemo() {
 					hitRatio = (adjustedTime - rect.hitTime) / 1.0;
 				}
 				gl.uniform1f(uniformRatio, clamp(hitRatio, 0.0, 1.0));
+
+				if (rect.type == CollisionType.Death)
+				{
+					gl.uniform1i(uniformColorMode, 1);
+				}
+				else
+				{
+					gl.uniform1i(uniformColorMode, 0);
+				}
 
 				gl.uniform2f(uniformSize, rect.size[0], rect.size[1]);
 				gl.uniform2f(uniformPadding, 0.2, 0.2);

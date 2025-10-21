@@ -95,8 +95,8 @@ var MINIMUM_CAMERA_HEIGHT = 4.0;
 var MINIMUM_CAMERA_WIDTH = 2.0;
 var HIT_INDEX_MAX = 8;
 //var ball = new GameBall([0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.1, 0.1]);
-var ball = new GameBall([0.0, 0.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
-player = new GamePlayer([0.0, -0.5], [0.05, 0.05], [0, 0]);
+ball = new GameBall([2.0, -4.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
+player = new GamePlayer([2.0, -3.0], [0.05, 0.05], [0, 0]);
 var ballHits = new Float32Array([-99999.0, 0.0, 0.0,
 -99999.0, 0.0, 0.0,
 -99999.0, 0.0, 0.0,
@@ -116,19 +116,32 @@ var playerHits = new Float32Array([-99999.0, 0.0, 0.0,
 -99999.0, 0.0, 0.0]);
 
 var rects = [];
-rects.push(new RectCollision([-1.5, 0.5], [1.0, 1.0], 25, CollisionTarget.All, CollisionType.Bounce));
-rects.push(new RectCollision([1.5, 0.5], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
-rects.push(new RectCollision([3.0, 1.0], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
-rects.push(new RectCollision([4, 5, 1.5], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
-rects.push(new RectCollision([6.0, 2.0], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
-rects.push(new RectCollision([7.5, 2.5], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
-rects.push(new RectCollision([9.0, 3.0], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
-rects.push(new RectCollision([-1, 2.5], [1.0, 1.0], -40, CollisionTarget.All, CollisionType.Death));
-rects.push(new RectCollision([1, 2.5], [1.0, 1.0], 40, CollisionTarget.All, CollisionType.Bounce));
-//rects.push(new RectCollision([1.5, -0.5], [1.0, 1.0], -10.0, CollisionTarget.All, CollisionType.Bounce));
-rects.push(new RectCollision([0, 10.0], [6.0, 0.3], 0.0, CollisionTarget.All, CollisionType.Bounce));
-rects.push(new RectCollision([15.0, 3.0], [0.5, 6.0], 0.0, CollisionTarget.All, CollisionType.Bounce));
-rects.push(new RectCollision([-3.0, 3.0], [0.5, 6.0], 0.0, CollisionTarget.All, CollisionType.Bounce));
+
+loadLevel('level.csv').then(levelRects => {
+  console.log("Loaded and merged level rectangles:", levelRects);
+  for (let r of levelRects) {
+	console.log(r);
+	let collision = new RectCollision(r.position, r.size, r.rotation, CollisionTarget[r.target], CollisionType[r.type.toUpperCase()]);
+	rects.push(collision);
+  }
+});
+
+
+
+
+// rects.push(new RectCollision([-1.5, 0.5], [1.0, 1.0], 25, CollisionTarget.All, CollisionType.Bounce));
+// rects.push(new RectCollision([1.5, 0.5], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
+// rects.push(new RectCollision([3.0, 1.0], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
+// rects.push(new RectCollision([4, 5, 1.5], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
+// rects.push(new RectCollision([6.0, 2.0], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
+// rects.push(new RectCollision([7.5, 2.5], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
+// rects.push(new RectCollision([9.0, 3.0], [1.0, 1.0], -25, CollisionTarget.All, CollisionType.Bounce));
+// rects.push(new RectCollision([-1, 2.5], [1.0, 1.0], -40, CollisionTarget.All, CollisionType.Death));
+// rects.push(new RectCollision([1, 2.5], [1.0, 1.0], 40, CollisionTarget.All, CollisionType.Bounce));
+// //rects.push(new RectCollision([1.5, -0.5], [1.0, 1.0], -10.0, CollisionTarget.All, CollisionType.Bounce));
+// rects.push(new RectCollision([0, 10.0], [6.0, 0.3], 0.0, CollisionTarget.All, CollisionType.Bounce));
+// rects.push(new RectCollision([15.0, 3.0], [0.5, 6.0], 0.0, CollisionTarget.All, CollisionType.Bounce));
+// rects.push(new RectCollision([-3.0, 3.0], [0.5, 6.0], 0.0, CollisionTarget.All, CollisionType.Bounce));
 
 var explosions = [];
 
@@ -143,13 +156,9 @@ function updateGameState(time, dt)
 
 
 		//ball = new GameBall([0.0, 0.0], [0.05, 1.5], [0.0, 0.0], [0.0, 0.0]);
-		ball = new GameBall([0.0, 0.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
-		player = new GamePlayer([0.0, -0.5], [0.05, 0.05], [0, 0]);
-		waitingForNextRound = false;
-		currentNumberOfHits = 0;
-		createTextTexture(gl, getTailingZeroNumber(currentNumberOfHits));
+		startRound();
 	}
-	else if (ball.position[1] < -1.0)
+	else if (ball.position[1] < -10.0)
 	{
 		handleBallDeath(ball, time);
 		return;
@@ -382,4 +391,13 @@ function handleDeath(time)
 
 	timeBeforeNextRound = time + DELAY_BETWEEN_ROUNDS;
 	waitingForNextRound = true;
+}
+
+function startRound()
+{
+		ball = new GameBall([2.0, -4.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
+		player = new GamePlayer([2.0, -3.0], [0.05, 0.05], [0, 0]);
+		waitingForNextRound = false;
+		currentNumberOfHits = 0;
+		createTextTexture(gl, getTailingZeroNumber(currentNumberOfHits));
 }

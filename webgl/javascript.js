@@ -347,7 +347,7 @@ async function movementAndColorDemo() {
 			gl.uniform1f(uniformPositionLastHitTime, hitTime);
 			gl.uniform3fv(uniformPositionBallHits, ballHits);
 			gl.uniform3fv(uniformPositionPlayerHits, playerHits);
-			gl.uniform2f(uniformSize, 10.0, 10.0);
+			gl.uniform2f(uniformSize, 20.0, 20.0);
 			gl.uniform2f(uniformPadding, 0.0, 0.0);
 			gl.uniform2f(uniformTranslation, 0.0, 0.0);
 			gl.uniform1f(uniformRotation, 0.0);

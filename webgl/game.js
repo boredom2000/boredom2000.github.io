@@ -95,8 +95,8 @@ var MINIMUM_CAMERA_HEIGHT = 4.0;
 var MINIMUM_CAMERA_WIDTH = 2.0;
 var HIT_INDEX_MAX = 8;
 //var ball = new GameBall([0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.1, 0.1]);
-ball = new GameBall([2.0, -4.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
-player = new GamePlayer([2.0, -3.0], [0.05, 0.05], [0, 0]);
+ball = new GameBall([2.0, -3.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
+player = new GamePlayer([2.0, -4.0], [0.05, 0.05], [0, 0]);
 var ballHits = new Float32Array([-99999.0, 0.0, 0.0,
 -99999.0, 0.0, 0.0,
 -99999.0, 0.0, 0.0,
@@ -158,7 +158,7 @@ function updateGameState(time, dt)
 		//ball = new GameBall([0.0, 0.0], [0.05, 1.5], [0.0, 0.0], [0.0, 0.0]);
 		startRound();
 	}
-	else if (ball.position[1] < -10.0)
+	else if (ball.position[1] < -100.0)
 	{
 		handleBallDeath(ball, time);
 		return;
@@ -395,8 +395,8 @@ function handleDeath(time)
 
 function startRound()
 {
-		ball = new GameBall([2.0, -4.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
-		player = new GamePlayer([2.0, -3.0], [0.05, 0.05], [0, 0]);
+		ball = new GameBall([2.0, -3.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
+		player = new GamePlayer([2.0, -4.0], [0.05, 0.05], [0, 0]);
 		waitingForNextRound = false;
 		currentNumberOfHits = 0;
 		createTextTexture(gl, getTailingZeroNumber(currentNumberOfHits));

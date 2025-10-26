@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Liquid Toy (WebGL2)</title>
+<style>
+  html, body { margin:0; height:100%; background:#000; overflow:hidden; }
+  canvas { width:100%; height:100%; display:block; }
+</style>
+</head>
+<body>
+<canvas id="glcanvas"></canvas>
+
+<!-- Vertex shader -->
+<script id="vs" type="x-shader/x-vertex">#version 300 es
+precision highp float;
+layout(location = 0) in vec2 aPos;
+out vec2 vUV;
+void main() {
+    vUV = aPos * 0.5 + 0.5;
+    gl_Position = vec4(aPos, 0.0, 1.0);
+}
+</script>
+
+<!-- Buffer A -->
+<script id="fs-bufferA" type="x-shader/x-fragment">#version 300 es
+precision highp float;
+
+out vec4 fragColor;
+in vec2 vUV;
+uniform vec3 iResolution;
+uniform float iTime;
+uniform float iTimeDelta;
+uniform vec4 iMouse;
+uniform sampler2D iChannel0;
+uniform sampler2D iChannel1;
+
+#define TEX(uv) texture(iChannel0, uv).r
+#define TEX1(uv) texture(iChannel1, uv).r
+#define trace(edge, thin) smoothstep(thin, .0, edge)
+#define ss(a,b,t) smoothstep(a,b,t)
+
+const float speed = .01;
+const float scale = .1;
+const float falloff = 3.;
+const float fade = .4;
+const float strength = 1.;
+const float range = 5.;
+
+vec3 fbm(vec3 p) {
+    vec3 result = vec3(0.0);
+    float amplitude = 0.5;
+    for (float index = 0.0; index < 3.0; ++index) {
+        result += texture(iChannel0, p.xy / amplitude).xyz * amplitude;
+        amplitude /= falloff;
+    }
+    return result;
+}
+
+void main() {
+    vec2 fragCoord = vUV * iResolution.xy;
+    vec2 uv = (fragCoord - iResolution.xy * 0.5) / iResolution.y;
+    vec2 aspect = vec2(iResolution.x / iResolution.y, 1.0);
+    vec3 spice = fbm(vec3(uv * scale, iTime * speed));
+
+    float t = iTime * 2.0;
+    vec2 mouse = (iMouse.xy - iResolution.xy * 0.5) / iResolution.y;
+    if (iMouse.z > 0.5)
+        uv -= mouse;
+    else
+        uv -= vec2(cos(t), sin(t)) * 0.3;
+
+    float paint = trace(length(uv), 0.1);
+
+    vec2 offset = vec2(0.0);
+    uv = fragCoord / iResolution.xy;
+    vec4 data = texture(iChannel1, uv);
+    vec3 unit = vec3(range / 472.0 / aspect, 0.0);
+    vec3 normal = normalize(vec3(
+        TEX1(uv - unit.xz) - TEX1(uv + unit.xz),
+        TEX1(uv - unit.zy) - TEX1(uv + unit.zy),
+        data.x * data.x) + 0.001);
+    offset -= normal.xy;
+
+    spice.x *= 6.28 * 2.0;
+    spice.x += iTime;
+    offset += vec2(cos(spice.x), sin(spice.x));
+
+    uv += strength * offset / aspect / 472.0;
+
+    vec4 frame = texture(iChannel1, uv);
+    paint = max(paint, frame.x - iTimeDelta * fade);
+    fragColor = vec4(clamp(paint, 0.0, 1.0));
+}
+</script>
+
+<!-- Image shader -->
+<script id="fs-image" type="x-shader/x-fragment">#version 300 es
+precision highp float;
+
+out vec4 fragColor;
+in vec2 vUV;
+uniform vec3 iResolution;
+uniform float iTime;
+uniform vec4 iMouse;
+uniform sampler2D iChannel0;
+uniform sampler2D iChannel1;
+uniform sampler2D iChannel2;
+
+#define TEX(uv) texture(iChannel0, uv).r
+#define trace(edge, thin) smoothstep(thin, .0, edge)
+#define ss(a,b,t) smoothstep(a,b,t)
+
+void main() {
+    vec2 fragCoord = vUV * iResolution.xy;
+    vec2 uv = fragCoord / iResolution.xy;
+    vec3 dither = texture(iChannel1, fragCoord / 1024.0).rgb;
+    vec4 data = texture(iChannel0, uv);
+    float gray = data.x;
+
+    float range = 3.0;
+    vec2 aspect = vec2(iResolution.x / iResolution.y, 1.0);
+    vec3 unit = vec3(range / 472.0 / aspect, 0.0);
+    vec3 normal = normalize(vec3(
+        TEX(uv + unit.xz) - TEX(uv - unit.xz),
+        TEX(uv - unit.zy) - TEX(uv + unit.zy),
+        gray * gray * gray));
+
+    vec3 color = vec3(.3) * (1.0 - abs(dot(normal, vec3(0,0,1))));
+    vec3 dir = normalize(vec3(0,1,2));
+    float specular = pow(dot(normal, dir)*.5+.5,20.);
+    color += vec3(.5) * ss(.2,1.,specular);
+
+    vec3 tint = .5 + .5 * cos(vec3(1,2,3)*1.0 + dot(normal, dir)*4.0 - uv.y*3.0 - 3.0);
+    color += tint * smoothstep(.15,.0,gray);
+    color -= dither.x * .1;
+
+    vec3 background = vec3(1.0);
+    background *= smoothstep(1.5, -.5, length(uv - .5));
+    color = mix(background, clamp(color, 0.0, 1.0), ss(.01,.1,gray));
+
+    if (iMouse.z > 0.5 && iMouse.x / iResolution.x < .1) {
+        if (uv.x < .33) color = vec3(gray);
+        else if (uv.x < .66) color = normal * .5 + .5;
+        else color = tint;
+    }
+
+    fragColor = vec4(color, 1.0);
+}
+</script>
+
+<script>
+(async () => {
+const canvas = document.getElementById('glcanvas');
+const gl = canvas.getContext('webgl2');
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+
+// compile helper
+function compileShader(type, src) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src.trimStart()); // ensure #version is first
+  gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+    throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+
+// link helper
+function makeProgram(vsSrc, fsSrc) {
+  const p = gl.createProgram();
+  gl.attachShader(p, compileShader(gl.VERTEX_SHADER, vsSrc));
+  gl.attachShader(p, compileShader(gl.FRAGMENT_SHADER, fsSrc));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS))
+    throw new Error(gl.getProgramInfoLog(p));
+  return p;
+}
+
+const vsSrc = document.getElementById('vs').textContent;
+const fsBufferA = document.getElementById('fs-bufferA').textContent;
+const fsImage = document.getElementById('fs-image').textContent;
+const progBufferA = makeProgram(vsSrc, fsBufferA);
+const progImage = makeProgram(vsSrc, fsImage);
+
+// fullscreen quad
+const quad = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+
+// noise texture helper
+function createNoiseTex(size=256) {
+  const data = new Uint8Array(size*size*4);
+  for (let i=0;i<data.length;i++) data[i]=Math.random()*255;
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,size,size,0,gl.RGBA,gl.UNSIGNED_BYTE,data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+  return tex;
+}
+
+function createTex() {
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  return tex;
+}
+
+function createFBO(tex) {
+  const fbo = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  return fbo;
+}
+
+let texA = createTex(), texB = createTex();
+let fboA = createFBO(texA), fboB = createFBO(texB);
+const noiseTex = createNoiseTex(256);
+const ditherTex = createNoiseTex(1024);
+
+let mouse = [0,0,0,0];
+canvas.addEventListener('mousemove', e => mouse=[e.offsetX,canvas.height-e.offsetY,mouse[2],0]);
+canvas.addEventListener('mousedown', e => mouse[2]=1);
+canvas.addEventListener('mouseup', e => mouse[2]=0);
+
+let prevTime = performance.now()/1000;
+
+function setUniforms(prog, texs) {
+  const t = performance.now()/1000;
+  const dt = t - prevTime;
+  prevTime = t;
+  gl.useProgram(prog);
+  gl.uniform3f(gl.getUniformLocation(prog,"iResolution"), canvas.width, canvas.height, 1);
+  gl.uniform1f(gl.getUniformLocation(prog,"iTime"), t);
+  if (gl.getUniformLocation(prog,"iTimeDelta"))
+    gl.uniform1f(gl.getUniformLocation(prog,"iTimeDelta"), dt);
+  if (gl.getUniformLocation(prog,"iMouse"))
+    gl.uniform4fv(gl.getUniformLocation(prog,"iMouse"), mouse);
+  texs.forEach(([name, tex, unit])=>{
+    gl.activeTexture(gl.TEXTURE0+unit);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.uniform1i(gl.getUniformLocation(prog,name), unit);
+  });
+}
+
+function draw(prog) {
+  gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+  const loc = gl.getAttribLocation(prog, "aPos");
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+}
+
+function render() {
+  // Buffer A pass
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fboB);
+  gl.viewport(0,0,canvas.width,canvas.height);
+  setUniforms(progBufferA, [["iChannel0", noiseTex, 0], ["iChannel1", texA, 1]]);
+  draw(progBufferA);
+
+  // Image pass
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0,0,canvas.width,canvas.height);
+  setUniforms(progImage, [["iChannel0", texB, 0], ["iChannel1", ditherTex, 1], ["iChannel2", noiseTex, 2]]);
+  draw(progImage);
+
+  // swap buffers
+  [texA, texB] = [texB, texA];
+  [fboA, fboB] = [fboB, fboA];
+
+  requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
+})();
+</script>
+</body>
+</html>

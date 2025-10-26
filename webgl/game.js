@@ -97,23 +97,7 @@ var HIT_INDEX_MAX = 8;
 //var ball = new GameBall([0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.1, 0.1]);
 ball = new GameBall([2.0, -3.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
 player = new GamePlayer([2.0, -4.0], [0.05, 0.05], [0, 0]);
-var ballHits = new Float32Array([-99999.0, 0.0, 0.0,
--99999.0, 0.0, 0.0,
--99999.0, 0.0, 0.0,
--99999.0, 0.0, 0.0,
--99999.0, 0.0, 0.0,
--99999.0, 0.0, 0.0,
--99999.0, 0.0, 0.0,
--99999.0, 0.0, 0.0]);
 
-var playerHits = new Float32Array([-99999.0, 0.0, 0.0,
--99999.0, 0.0, 0.0,
--99999.0, 0.0, 0.0,
--99999.0, 0.0, 0.0,
--99999.0, 0.0, 0.0,
--99999.0, 0.0, 0.0,
--99999.0, 0.0, 0.0,
--99999.0, 0.0, 0.0]);
 
 var rects = [];
 
@@ -180,12 +164,6 @@ function updateGameState(time, dt)
 
 			timeBeforeNextCheck = time + DELAY_BETWEEN_HITS;
 
-			ballHits[nextHitIndex] = time / 1000.0;
-			ballHits[nextHitIndex + 1] = ball.position[0];
-			ballHits[nextHitIndex + 2] = ball.position[1];
-			playerHits[nextHitIndex] = time / 1000.0;
-			playerHits[nextHitIndex + 1] = player.position[0];
-			playerHits[nextHitIndex + 2] = player.position[1];
 			nextHitIndex = (nextHitIndex + 3) % 24;
 
 			hitTime = time / 1000.0;
@@ -200,7 +178,7 @@ function updateGameState(time, dt)
 			explosions.push(explosion);
 
 			currentNumberOfHits++;
-			createTextTexture(gl, getTailingZeroNumber(currentNumberOfHits));
+			//createTextTexture(gl, getTailingZeroNumber(currentNumberOfHits));
 
 		}
 	}

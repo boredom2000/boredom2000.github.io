@@ -5,8 +5,6 @@ precision mediump int;
 uniform int uRenderMode;
 uniform int uColorMode;
 
-uniform vec2 uPlayerPosition;
-uniform vec2 uPlayerSize;
 uniform vec2 uCameraPosition;
 uniform vec2 uToClipSpace;
 
@@ -15,12 +13,7 @@ uniform vec2 uPadding;
 
 uniform highp float uTime;
 uniform float uRatio;
-uniform vec2 uBallPosition;
-uniform vec2 uBallSize;
 uniform vec2 uTranslation;
-uniform highp float uLastHitTime;
-uniform highp vec3 uBallHits[8];
-uniform highp vec3 uPlayerHits[8];
 uniform sampler2D uSampler;
 
 
@@ -61,14 +54,9 @@ void main() {
     vec2 uv0 = fragmentUV - (uCameraPosition * uToClipSpace);
     vec3 finalColor = vec3(0.0);
 
-    float lastHitTime = uTime - uLastHitTime;
     float flash = smoothstep(0.0, 0.2, uRatio) - smoothstep(0.2, 1.0, uRatio);
 
-    float distanceFromCursor = distance(uPlayerPosition.xy, fragmentUV.xy);
-    float fractDistance = fract(distanceFromCursor * 5.0 - uTime * 0.2);
-    float ring = pow(0.01 / fractDistance, 1.2); //smoothstepping glowy
-
-    float dummy1 = uPlayerPosition.x * uTime * uBallPosition.x * uBallSize.x * uLastHitTime * uBallHits[0].x * uPlayerHits[0].x * uPlayerSize.x * 0.0 + 1.0;
+    float dummy1 = uTime * 0.0 + 1.0;
 
     //////////////BORDER
     {
@@ -205,7 +193,7 @@ void main() {
         finalColor = finalColor * vec3(black, black, black);
 
         float insideColor = smoothstep(0.0, adjustedBallSize.x+ 0.02, distanceFromBall);
-        float distanceFromRotating = distance(uBallPosition.xy + vec2(sin(uTime * 3.0), cos(uTime * 3.0)) * adjustedBallSize.x, fragmentUV.xy);
+        float distanceFromRotating = distance(uTranslation.xy + vec2(sin(uTime * 3.0), cos(uTime * 3.0)) * adjustedBallSize.x, fragmentUV.xy);
 
         float mask = 1.0 - black;
 

@@ -158,21 +158,13 @@ async function movementAndColorDemo() {
 
 
 		// Load texture
-	const texture = loadTexture(gl, "cubetexture.png");
 	createTextTexture(gl, "00");
 	let targetTexture;
 	// Flip image pixels into the bottom-to-top order that WebGL expects.
 	//gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
 	// Get uniform locations
-	const uniformPositionPlayerPos = gl.getUniformLocation(movementAndColorProgram, 'uPlayerPosition');
-	const uniformPositionPlayerSize = gl.getUniformLocation(movementAndColorProgram, 'uPlayerSize');
 	const uniformPositionTime = gl.getUniformLocation(movementAndColorProgram, 'uTime');
-	const uniformPositionBallPosition = gl.getUniformLocation(movementAndColorProgram, 'uBallPosition');
-	const uniformPositionBallSize = gl.getUniformLocation(movementAndColorProgram, 'uBallSize');
-	const uniformPositionLastHitTime = gl.getUniformLocation(movementAndColorProgram, 'uLastHitTime');
-	const uniformPositionBallHits = gl.getUniformLocation(movementAndColorProgram, 'uBallHits');
-	const uniformPositionPlayerHits = gl.getUniformLocation(movementAndColorProgram, 'uPlayerHits');
 	const uniformPositionSampler = gl.getUniformLocation(movementAndColorProgram, 'uSampler');
 	const uniformSize = gl.getUniformLocation(movementAndColorProgram, 'uSize');
 	const uniformPadding = gl.getUniformLocation(movementAndColorProgram, 'uPadding');
@@ -186,17 +178,9 @@ async function movementAndColorDemo() {
 	const uniformRatio = gl.getUniformLocation(movementAndColorProgram, 'uRatio');
 	const uniformColorMode = gl.getUniformLocation(movementAndColorProgram, 'uColorMode');
 
-	if (uniformPositionPlayerPos === null || uniformPositionPlayerSize === null || uniformPositionTime === null
-		|| uniformPositionBallPosition === null || uniformPositionBallSize === null ||
-		uniformPositionLastHitTime === null || uniformPositionBallHits === null || uniformPositionPlayerHits === null) {
-		showError(`Failed to get uniform locations (uniformPositionPlayerPos=${!!uniformPositionPlayerPos}`
+	if (uniformPositionTime === null) {
+		showError(`Failed to get uniform locations`
 		 + `, uTime=${!!uniformPositionTime}`
-		 + `, uniformPositionPlayerSize=${!!uniformPositionPlayerSize}`
-		 + `, uBallPosition=${!!uniformPositionBallPosition}`
-		 + `, uBallSize=${!!uniformPositionBallSize}`
-		 + `, uLastHitTime=${!!uniformPositionLastHitTime}`
-		 + `, uBallHits=${!!uniformPositionBallHits}`
-		 + `, uPlayerHits=${!!uniformPositionPlayerHits}`
 		 + `, uniformPositionSampler=${!!uniformPositionSampler})`);
 		return;
 	}
@@ -339,14 +323,6 @@ async function movementAndColorDemo() {
 			// Set uniforms shared across frame...
 			
 			gl.uniform1f(uniformPositionTime, time / 1000.0);
-			
-			//gl.uniform2f(uniformPositionPlayerPos, player.position[0], player.position[1]);
-			//gl.uniform2f(uniformPositionPlayerSize, player.size[0], player.size[1]);
-			//gl.uniform2f(uniformPositionBallPosition, ball.position[0], ball.position[1]);
-			//gl.uniform2f(uniformPositionBallSize, ball.size[0], ball.size[1]);
-			gl.uniform1f(uniformPositionLastHitTime, hitTime);
-			gl.uniform3fv(uniformPositionBallHits, ballHits);
-			gl.uniform3fv(uniformPositionPlayerHits, playerHits);
 			gl.uniform2f(uniformSize, 20.0, 20.0);
 			gl.uniform2f(uniformPadding, 0.0, 0.0);
 			gl.uniform2f(uniformTranslation, 0.0, 0.0);

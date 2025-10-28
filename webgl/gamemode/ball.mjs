@@ -1,3 +1,5 @@
+export let game = {};
+
 const CollisionTarget = Object.freeze({
 	All: 0,
 	Ball: 1,
@@ -83,8 +85,8 @@ class Explosion
 	}
 }
 
-let playAreaWidth = 1.0;
-let playAreaHeight = 2.0;
+let playAreaWidth;
+let playAreaHeight;
 var currentNumberOfHits = 0;
 var hitTime = 0.0;
 var timeBeforeNextCheck = 0.0;
@@ -93,12 +95,10 @@ var waitingForNextRound = false;
 var nextHitIndex = 0;
 var DELAY_BETWEEN_HITS = 1000.0;
 var DELAY_BETWEEN_ROUNDS = 2000.0;
-var MINIMUM_CAMERA_HEIGHT = 4.0;
-var MINIMUM_CAMERA_WIDTH = 2.0;
 var HIT_INDEX_MAX = 8;
 //var ball = new GameBall([0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.1, 0.1]);
-ball = new GameBall([2.0, -3.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
-player = new GamePlayer([2.0, -4.0], [0.05, 0.05], [0, 0]);
+let ball = new GameBall([2.0, -3.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
+let player = new GamePlayer([2.0, -4.0], [0.05, 0.05], [0, 0]);
 
 
 var rects = [];
@@ -379,4 +379,35 @@ function startRound()
 		waitingForNextRound = false;
 		currentNumberOfHits = 0;
 		createTextTexture(gl, getTailingZeroNumber(currentNumberOfHits));
+}
+
+game.updateGame = function (time, dt)
+{
+    if (player != null)
+    {
+        player.update(dt, movementVector);
+
+        showLog("Ball Position= " + ball.position[0] + ", " + ball.position[1] +
+            "<br \>Player Position= " + player.position[0] + ", " + player.position[1] +
+            "<br \>Ball Size= " + ball.size[0] + ", " + player.size[1] +
+            "<br \>movementVector= " + movementVector[0] + ", " + movementVector[1] +
+            "<br \>Delta Time= " + dt +
+            "<br \>time=" + time
+
+
+        );
+    }
+    if (ball != null)
+    {
+        ball.update(dt);
+    }
+
+    game.player = player;
+    game.ball = ball;
+    game.rects = rects;
+    game.explosions = explosions;
+    game.playAreaWidth = playAreaWidth;
+    game.playAreaHeight = playAreaHeight;
+
+    updateGameState(time, dt);
 }

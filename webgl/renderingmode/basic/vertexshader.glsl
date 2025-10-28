@@ -4,9 +4,7 @@ precision mediump float;
 precision mediump int; 
 uniform int uRenderMode;
 
-uniform vec2 uResolution;
 uniform vec2 uCameraPosition;
-uniform vec2 uCameraSize;
 
 uniform vec2 uToClipSpace;
 
@@ -19,24 +17,6 @@ in vec2 vertexUV;
 out vec2 fragmentUV;
 
 void main() {
-  //TODO: feed aspect ratio directly to save at least 1 division
-  float screenAspect = uResolution.x / uResolution.y; //1.77
-  float cameraAspect = uCameraSize.x / uCameraSize.y; //0.5
-
-  if (false /*uRenderMode == 0*/)
-  {
-    fragmentUV = vec2(vertexPosition.x, -vertexPosition.y);
-    if (screenAspect > cameraAspect) {
-        // Screen is wider than camera: scale X
-        fragmentUV.x *= (screenAspect / cameraAspect) * 0.5;
-    } else {
-        // Screen is taller than camera: scale Y
-        fragmentUV.y *= (screenAspect / cameraAspect) * 0.5;
-    }
-
-    gl_Position = vec4(vertexPosition.xy, 0.0, 1.0);
-  }
-  else
   {
     fragmentUV = vertexUV;
 

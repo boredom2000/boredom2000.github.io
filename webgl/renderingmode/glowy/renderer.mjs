@@ -3,11 +3,10 @@ export let renderer = {};
 const squarePositions = new Float32Array([ -1, 1, -1, -1, 1, -1,  -1, 1, 1, -1, 1, 1 ]);
 var rectUVs = new Float32Array([ 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0 ]);
 
-
 // Get attribute locations
 
-const vertexShaderSourceCode = await loadShaderSource('/renderingmode/basic/vertexshader.glsl');
-const fragmentShaderSourceCode = await loadShaderSource('/renderingmode/basic/fragmentshader.glsl');
+const vertexShaderSourceCode = await loadShaderSource('/renderingmode/glowy/vertexshader.glsl');
+const fragmentShaderSourceCode = await loadShaderSource('/renderingmode/glowy/fragmentshader.glsl');
 const movementAndColorProgram = createProgram(gl, vertexShaderSourceCode, fragmentShaderSourceCode);
 if (!movementAndColorProgram)
 {

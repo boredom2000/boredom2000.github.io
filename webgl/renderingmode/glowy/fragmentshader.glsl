@@ -58,8 +58,20 @@ void main() {
 
     float dummy1 = uTime * 0.0 + 1.0;
 
-    float horizontalEdgeSize = abs(dFdx(fragmentUV.x));
-    float verticalEdgeSize = abs(dFdy(fragmentUV.y));
+    //////////////BORDER
+    {
+        //float rightBorder = max(1.0 - abs(fragmentUV.x - 0.5), 0.0);
+        //float leftBorder = max(1.0 - abs(fragmentUV.x + 0.5), 0.0);
+    
+        //float topBorder = max(1.0 - abs(fragmentUV.y - 1.0), 0.0);
+        //float bottomBorder = max(1.0 - abs(fragmentUV.y + 1.0), 0.0);
+    
+        //float border = max(max(leftBorder, rightBorder), max(topBorder, bottomBorder) );
+        //border = pow(0.01 / (1.0 - border), 1.0); //smoothstepping glowy
+        //vec3 col = palette(length(uv0) + 2.0*.4 + uTime*.4); //color
+
+        //finalColor += border * col;
+    }
 
     //////////////GRID
     if (uRenderMode == 0) {
@@ -123,36 +135,83 @@ void main() {
 
     if (uRenderMode == 1)
     {
-        vec2 trueShape = uSize / (uSize + uPadding);
-        float radius = trueShape.x * 0.5;
-        vec2 outlineSize = vec2(0.02, 0.02) / trueShape;
+        float distanceFromBall = distance(fragmentUV.xy, vec2(0.5, 0.5));
+        vec2 adjustedBallSize = vec2(0.3, 0.3);
+        float ball = smoothstep(adjustedBallSize.x - 0.3, adjustedBallSize.x, distanceFromBall) - smoothstep(adjustedBallSize.x, adjustedBallSize.x + 0.3, distanceFromBall);
 
-        float dist = length(fragmentUV - vec2(0.5, 0.5));
-        float ddx_dist = dFdx(dist);
-        float ddy_dist = dFdy(dist);
-        float width = sqrt(ddx_dist * ddx_dist + ddy_dist * ddy_dist);
+        //border = sin(border*8. + uTime)/8.; //alternating from -1 to 1
+        //border = abs(border); //alternating from 0 to 1
+        ball = pow(0.05 / (1.0 - ball), 1.2); //smoothstepping glowy
+        vec3 col = palette(length(uv0 * 5.0) + 4.0*.4 - uTime*0.4, uColorMode); //color
 
-        // 5. Use the footprint to create a smooth, anti-aliased edge
-        float alpha = smoothstep(radius - width, radius, dist) - smoothstep(radius + outlineSize.x - width, radius + outlineSize.x, dist);
+        finalColor += ball * col;
+        finalColor = clamp(finalColor, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
 
-        finalColor += alpha * vec3(1.0, 0.0, 1.0);
+        float black = smoothstep(adjustedBallSize.x, adjustedBallSize.x+ 0.02, distanceFromBall);
+        finalColor = finalColor * vec3(black, black, black);
+
+        float distanceFromRotating = distance(vec2(0.5, 0.5) + vec2(sin(uTime * 3.0), cos(uTime * 3.0)) * 0.25, fragmentUV.xy);
+
+        float mask = 1.0 - black;
+
+        vec3 addedColor = mix(palette(abs(sin(distanceFromRotating * 10.0 + uTime * 2.0)), uColorMode), vec3(1.0, 1.0, 1.0), flash);
+
+        finalColor += addedColor * mask;
+
+        if (false)
+        { //debug pink collision
+            vec2 trueShape = uSize / (uSize + uPadding);
+            vec2 trueShapeUVStart = (vec2(1.0, 1.0) - trueShape) * vec2(0.5, 0.5);
+            vec2 trueShapeUVEnd = vec2(1.0, 1.0) - trueShapeUVStart;
+
+            float insideX = step(fragmentUV.x, trueShapeUVStart.x) - step(fragmentUV.x, trueShapeUVEnd.x);
+            float insideY = step(fragmentUV.y, trueShapeUVStart.y) - step(fragmentUV.y, trueShapeUVEnd.y);
+
+            finalColor += insideX * insideY * vec3(1.0, 0.0, 1.0);
+        }
+
+
+        //finalColor = vec3(1.0, 0.0, 1.0);
     }
 
     if (uRenderMode == 2)
     {
+        //float distanceFromBall = distance(fragmentUV.xy, vec2(0.5, 0.5));
+        float distanceFromBall = max(abs(fragmentUV.x - 0.5), abs(fragmentUV.y - 0.5));
+        vec2 adjustedBallSize = vec2(0.4, 0.4);
+        float ball = smoothstep(adjustedBallSize.x - 0.3, adjustedBallSize.x, distanceFromBall) - smoothstep(adjustedBallSize.x, adjustedBallSize.x + 0.3, distanceFromBall);
 
-        vec2 trueShape = uSize / (uSize + uPadding);
-        vec2 radius = trueShape * 0.5;
-        vec2 outlineSize = vec2(0.02, 0.02) / uSize;
+        //border = sin(border*8. + uTime)/8.; //alternating from -1 to 1
+        //border = abs(border); //alternating from 0 to 1
+        ball = pow(0.05 / (1.0 - ball), 1.2); //smoothstepping glowy
+        vec3 col = palette(length(uv0) + 4.0*.4 - uTime*0.4, uColorMode); //color
 
-        vec2 dist = abs(fragmentUV - vec2(0.5, 0.5));
+        finalColor += ball * col;
+        finalColor = clamp(finalColor, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
 
-        vec2 inside = vec2(1., 1.) - smoothstep(radius , radius + outlineSize + vec2(horizontalEdgeSize, verticalEdgeSize), dist);
+        float black = smoothstep(adjustedBallSize.x, adjustedBallSize.x+ 0.02, distanceFromBall);
+        finalColor = finalColor * vec3(black, black, black);
 
-        float outlineX = smoothstep(radius.x - horizontalEdgeSize, radius.x, dist.x) - smoothstep(radius.x + outlineSize.x - horizontalEdgeSize, radius.x + outlineSize.x, dist.x);
-        float outlineY = smoothstep(radius.y - verticalEdgeSize, radius.y, dist.y) - smoothstep(radius.y + outlineSize.y - verticalEdgeSize, radius.y + outlineSize.y, dist.y);
-        finalColor += inside.x * inside.y * max(outlineX, outlineY) * vec3(1.0, 0.0, 1.0);
+        float insideColor = smoothstep(0.0, adjustedBallSize.x+ 0.02, distanceFromBall);
+        float distanceFromRotating = distance(uTranslation.xy + vec2(sin(uTime * 3.0), cos(uTime * 3.0)) * adjustedBallSize.x, fragmentUV.xy);
 
+        float mask = 1.0 - black;
+
+        vec3 addedColor = mix(palette(abs(sin(distanceFromRotating * 20.0 + uTime * 2.0)), uColorMode), vec3(1.0, 1.0, 1.0), flash);
+
+        finalColor += addedColor * mask;
+
+        if (false)
+        { //debug pink collision
+            vec2 trueShape = uSize / (uSize + uPadding);
+            vec2 trueShapeUVStart = (vec2(1.0, 1.0) - trueShape) * vec2(0.5, 0.5);
+            vec2 trueShapeUVEnd = vec2(1.0, 1.0) - trueShapeUVStart;
+
+            float insideX = step(fragmentUV.x, trueShapeUVStart.x) - step(fragmentUV.x, trueShapeUVEnd.x);
+            float insideY = step(fragmentUV.y, trueShapeUVStart.y) - step(fragmentUV.y, trueShapeUVEnd.y);
+
+            finalColor += insideX * insideY * vec3(1.0, 0.0, 1.0);
+        }
     }
 
     if (uRenderMode == 3) {

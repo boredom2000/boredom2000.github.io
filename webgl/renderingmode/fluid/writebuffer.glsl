@@ -53,4 +53,7 @@ void main(){
   vec4 frame = texture(iChannel1, uv);
   paint = max(paint, frame.x - iTimeDelta * fade);
   fragColor = vec4(clamp(paint,0.0,1.0));
+
+  float dist = length(fragCoord - vec2(0.5,0.5)) * 0.0005;
+  fragColor = vec4(dist, dist,dist,dist);
 }

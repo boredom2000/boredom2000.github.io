@@ -1,16 +1,19 @@
 #version 300 es
-precision highp float;
+precision mediump float;
+precision mediump int;
 out vec4 fragColor;
 in vec2 fragmentUV;
 uniform vec3 iResolution;
 uniform float iTime;
 uniform float iTimeDelta;
 uniform int uRenderMode;
-uniform sampler2D iChannel0;
-uniform sampler2D iChannel1;
+uniform sampler2D uSourceTexture;
+uniform sampler2D uNoiseTexture;
+uniform vec2 uSize; // Example: a model transformation matrix
+uniform vec2 uPadding;
 
-#define TEX(uv) texture(iChannel0, uv).r
-#define TEX1(uv) texture(iChannel1, uv).r
+#define TEXTURE_SOURCE(uv) texture(uSourceTexture, uv).r
+#define TEXTURE_NOISE(uv) texture(uNoiseTexture, uv).r
 #define trace(edge, thin) smoothstep(thin, .0, edge)
 #define ss(a,b,t) smoothstep(a,b,t)
 
@@ -25,7 +28,7 @@ vec3 fbm(vec3 p){
   vec3 result = vec3(0.0);
   float amplitude = 0.5;
   for(float i=0.0;i<3.0;i++){
-    result += texture(iChannel0, p.xy/amplitude).xyz * amplitude;
+    result += texture(uNoiseTexture, p.xy/amplitude).xyz * amplitude;
     amplitude /= falloff;
   }
   return result;
@@ -42,43 +45,60 @@ void main()
     vec3 spice = fbm(vec3(uv*scale,iTime*speed));
     float t = iTime*2.0;
     //uv -= vec2(cos(t),sin(t))*0.3;
-    float paint = trace(length(uv),0.04);
+    float paint = 0.;//trace(length(uv),0.04);
     vec2 offset = vec2(0.0);
     uv = fragCoord/iResolution.xy;
-    vec4 data = texture(iChannel1, uv);
+    vec4 data = texture(uSourceTexture, uv);
     vec3 unit = vec3(range/472.0/aspect,0.0);
     vec3 normal = normalize(vec3(
-        TEX1(uv - unit.xz)-TEX1(uv + unit.xz),
-        TEX1(uv - unit.zy)-TEX1(uv + unit.zy),
+        TEXTURE_NOISE(uv - unit.xz)-TEXTURE_NOISE(uv + unit.xz),
+        TEXTURE_NOISE(uv - unit.zy)-TEXTURE_NOISE(uv + unit.zy),
         data.x*data.x)+0.001);
     offset -= normal.xy;
-    spice.x *= 6.28*2.0;
+    spice.x *= 6.28*5.0;
     spice.x += iTime;
     offset += vec2(cos(spice.x),sin(spice.x));
     uv += strength * offset / aspect / 472.0;
-    vec4 frame = texture(iChannel1, uv);
+    vec4 frame = texture(uSourceTexture, uv);
     paint = max(paint, frame.x - iTimeDelta * fade);
     fragColor = vec4(clamp(paint,0.0,1.0));
   }
   else if (uRenderMode == 1)
   {
+    float horizontalEdgeSize = abs(dFdx(fragmentUV.x));
+    float verticalEdgeSize = abs(dFdy(fragmentUV.y));
+
     //add the current game element in the current buffer 
-    float dist = 1. - length(fragmentUV - vec2(0.5,0.5));
-    fragColor = vec4(dist,0.,0.,0.);
+    // float dist = 1. - length(fragmentUV - vec2(0.5,0.5));
+    // fragColor = vec4(1.,0.,0.,1.);
+
+    vec2 trueShape = uSize / (uSize + uPadding);
+    vec2 radius = trueShape * 0.5;
+    vec2 outlineSize = vec2(0.02, 0.02) / uSize;
+
+    vec2 dist = abs(fragmentUV - vec2(0.5, 0.5));
+
+    vec2 inside = vec2(1., 1.) - smoothstep(radius , radius + outlineSize + vec2(horizontalEdgeSize, verticalEdgeSize), dist);
+
+    float outlineX = smoothstep(radius.x - horizontalEdgeSize, radius.x, dist.x) - smoothstep(radius.x + outlineSize.x - horizontalEdgeSize, radius.x + outlineSize.x, dist.x);
+    float outlineY = smoothstep(radius.y - verticalEdgeSize, radius.y, dist.y) - smoothstep(radius.y + outlineSize.y - verticalEdgeSize, radius.y + outlineSize.y, dist.y);
+    vec3 outline = inside.x * inside.y * max(outlineX, outlineY) * vec3(1.0, 0.0, 1.0);
+    fragColor=vec4(outline,outline.x);
+    fragColor=vec4(1.,0.,0.,1.);
   }
   else
   {
 
   vec2 fragCoord = gl_FragCoord.xy;
-  vec3 dither = texture(iChannel1, fragCoord/1024.0).rgb;
-  vec4 data = texture(iChannel0, fragmentUV);
+  vec3 dither = texture(uNoiseTexture, fragCoord/1024.0).rgb;
+  vec4 data = texture(uSourceTexture, fragmentUV);
 
   float gray = data.x;
   float range = 3.0;
   vec3 unit = vec3(range/472.0,0.,0.0);
   vec3 normal = normalize(vec3(
-      TEX(fragmentUV+unit.xz)-TEX(fragmentUV-unit.xz),
-      TEX(fragmentUV-unit.zy)-TEX(fragmentUV+unit.zy),
+      TEXTURE_SOURCE(fragmentUV+unit.xz)-TEXTURE_SOURCE(fragmentUV-unit.xz),
+      TEXTURE_SOURCE(fragmentUV-unit.zy)-TEXTURE_SOURCE(fragmentUV+unit.zy),
       gray*gray*gray));
   vec3 color = vec3(0.3)*(1.0-abs(dot(normal,vec3(0,0,1))));
   vec3 dir = normalize(vec3(0,1,2));
@@ -95,8 +115,9 @@ void main()
 
 
 
-    //vec4 data = texture(iChannel0, fragmentUV);
-    //fragColor=vec4(data);
+    //data = texture(uSourceTexture, fragmentUV);
+    // data = texture(uNoiseTexture, fragmentUV);
+    // fragColor=vec4(data);
   }
 
 

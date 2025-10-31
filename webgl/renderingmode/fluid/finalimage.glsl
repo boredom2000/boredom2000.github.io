@@ -35,5 +35,4 @@ void main(){
   color = mix(background,(clamp(color,0.0,1.0)),ss(0.01,0.1,gray));
   color += vec3(0.5)*ss(0.2,1.0,specular);
   fragColor=vec4(color,1.0);
-  //fragColor=vec4(data);
 }

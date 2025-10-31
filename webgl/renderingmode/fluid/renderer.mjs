@@ -14,7 +14,7 @@ gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
 
 
 const progA = createProgram(gl, vertexBufferShaderSourceCode, fragmentShaderBufferSourceCode);
-const progFinal = createProgram(gl, vertexShaderSourceCode, fragmentShaderFinalSourceCode);
+const progFinal = createProgram(gl, vertexBufferShaderSourceCode, fragmentShaderFinalSourceCode);
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -29,13 +29,13 @@ var rectUVs = new Float32Array([ 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0 ]);
 const squareGeoBuffer = createStaticVertexBuffer(gl, squarePositions);
 const squareUvBuffer = createStaticVertexBuffer(gl, rectUVs);
 const vertexPositionAttributeLocation = gl.getAttribLocation(progA, 'vertexPosition');
+console.log('vertexPositionAttributeLocation=' + vertexPositionAttributeLocation);
+
 const vertexUVAttributeLocation = gl.getAttribLocation(progA, 'vertexUV');
+console.log('vertexUVAttributeLocation=' + vertexUVAttributeLocation);
+
+
 const backgroundVertexArray = createTwoBufferVao(gl, squareGeoBuffer, squareUvBuffer, vertexPositionAttributeLocation, vertexUVAttributeLocation);
-gl.bindVertexArray(backgroundVertexArray);
-gl.bindBuffer(gl.ARRAY_BUFFER, squareUvBuffer);
-gl.vertexAttribPointer(vertexUVAttributeLocation, 2, gl.FLOAT, true, 0, 0);
-gl.bindBuffer(gl.ARRAY_BUFFER, null);
-gl.bindVertexArray(null);
 
 function updatePlayArea()
 {
@@ -57,6 +57,7 @@ renderer.renderGame = function (game, time, deltaTime)
     const dt = deltaTime;
     gl.useProgram(progA);
     gl.bindFramebuffer(gl.FRAMEBUFFER,fbo2.fb);
+    //gl.bindFramebuffer(gl.FRAMEBUFFER,null);
     gl.viewport(0,0,canvas.width,canvas.height);
     gl.uniform3f(gl.getUniformLocation(progA,"iResolution"),canvas.width,canvas.height,1);
     gl.uniform1f(gl.getUniformLocation(progA,"iTime"),time*0.001);
@@ -67,7 +68,7 @@ renderer.renderGame = function (game, time, deltaTime)
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, fbo1.tex);
     gl.uniform1i(gl.getUniformLocation(progA,"iChannel1"),1);
-    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    //gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 
     const uniformToClipSize = gl.getUniformLocation(progA, 'uToClipSpace');
     const uniformCameraPosition = gl.getUniformLocation(progA, 'uCameraPosition');
@@ -75,9 +76,10 @@ renderer.renderGame = function (game, time, deltaTime)
     const uniformPadding = gl.getUniformLocation(progA, 'uPadding');
     const uniformTranslation = gl.getUniformLocation(progA, 'uTranslation');
     const uniformRotation = gl.getUniformLocation(progA, 'uRotation');
-
-    gl.bindVertexArray(backgroundVertexArray);
+    const uniformRenderMode = gl.getUniformLocation(progA, 'uRenderMode');
+    gl.uniform1f(uniformRotation, 0.);
     
+    gl.bindVertexArray(backgroundVertexArray);
 
     {
 
@@ -99,6 +101,13 @@ renderer.renderGame = function (game, time, deltaTime)
             gl.uniform2f(uniformToClipSize, 2.0 / playAreaWidth, (screenAspect / cameraAspect) * (2.0 / playAreaHeight));
         }
 
+        {
+            gl.uniform1i(uniformRenderMode, 0);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+        }
+
+
+        gl.uniform1i(uniformRenderMode, 1);
         //draw the ball
         if (ball != null)
         {
@@ -136,24 +145,23 @@ renderer.renderGame = function (game, time, deltaTime)
         });
 
           // final image
-            gl.useProgram(progFinal);
+          if (true)
+          {
+            gl.uniform1i(uniformRenderMode, 2);
+
             gl.bindFramebuffer(gl.FRAMEBUFFER,null);
             gl.viewport(0,0,canvas.width,canvas.height);
-            const loc2 = gl.getAttribLocation(progFinal,"aPos");
-            gl.bindBuffer(gl.ARRAY_BUFFER,quad);
-            gl.enableVertexAttribArray(loc2);
-            gl.vertexAttribPointer(loc2,2,gl.FLOAT,false,0,0);
-            gl.uniform3f(gl.getUniformLocation(progFinal,"iResolution"),canvas.width,canvas.height,1);
-            gl.uniform1f(gl.getUniformLocation(progFinal,"iTime"),time*0.001);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D,fbo2.tex);
-            gl.uniform1i(gl.getUniformLocation(progFinal,"iChannel0"),0);
+            gl.uniform1i(gl.getUniformLocation(progA,"iChannel0"),0);
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_2D,noiseTex);
-            gl.uniform1i(gl.getUniformLocation(progFinal,"iChannel1"),1);
-            gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+            gl.uniform1i(gl.getUniformLocation(progA,"iChannel1"),1);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
 
             [fbo1,fbo2]=[fbo2,fbo1];
+          }
+
 
     }
 

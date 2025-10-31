@@ -1,7 +1,6 @@
 export let renderer = {};
 
-const squarePositions = new Float32Array([ -1, 1, -1, -1, 1, -1,  -1, 1, 1, -1, 1, 1 ]);
-var rectUVs = new Float32Array([ 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0 ]);
+
 
 
 // Get attribute locations
@@ -13,15 +12,6 @@ if (!movementAndColorProgram)
 {
     showError('Failed to create Movement and Color WebGL program');
 }
-
-const vertexPositionAttributeLocation = gl.getAttribLocation(movementAndColorProgram, 'vertexPosition');
-const vertexUVAttributeLocation = gl.getAttribLocation(movementAndColorProgram, 'vertexUV');
-if (vertexPositionAttributeLocation < 0 || vertexUVAttributeLocation < 0)
-{
-    showError(`Failed to get attribute locations: (pos=${ vertexPositionAttributeLocation },`
-        + ` color=${ vertexUVAttributeLocation })`);
-}
-
 
 // Load texture
 createTextTexture(gl, "00");
@@ -50,6 +40,8 @@ if (uniformPositionTime === null)
 }
 
 // Create VAOs
+const squarePositions = new Float32Array([ -1, 1, -1, -1, 1, -1,  -1, 1, 1, -1, 1, 1 ]);
+var rectUVs = new Float32Array([ 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0 ]);
 const squareGeoBuffer = createStaticVertexBuffer(gl, squarePositions);
 const squareUvBuffer = createStaticVertexBuffer(gl, rectUVs);
 
@@ -60,23 +52,23 @@ if (!squareGeoBuffer || !squareUvBuffer)
         + `, square uv=${ !!squareUvBuffer }`);
 }
 
-const backgroundVertexArray = createTwoBufferVao(gl, squareGeoBuffer, squareUvBuffer, vertexPositionAttributeLocation, vertexUVAttributeLocation);
+const vertexPositionAttributeLocation = gl.getAttribLocation(movementAndColorProgram, 'vertexPosition');
+const vertexUVAttributeLocation = gl.getAttribLocation(movementAndColorProgram, 'vertexUV');
+if (vertexPositionAttributeLocation < 0 || vertexUVAttributeLocation < 0)
+{
+    showError(`Failed to get attribute locations: (pos=${ vertexPositionAttributeLocation },`
+        + ` color=${ vertexUVAttributeLocation })`);
+}
 
+const backgroundVertexArray = createTwoBufferVao(gl, squareGeoBuffer, squareUvBuffer, vertexPositionAttributeLocation, vertexUVAttributeLocation);
 if (!backgroundVertexArray)
 {
     showError(`Failed to create VAOs: (`
         + `backgroundVertexArray=${ !!backgroundVertexArray })`);
 }
 
-const rectVertexArray = createTwoBufferVao(gl, squareGeoBuffer, squareUvBuffer, vertexPositionAttributeLocation, vertexUVAttributeLocation);
+// END Create VAO
 
-if (!rectVertexArray)
-{
-    showError(`Failed to create VAOs: (`
-        + `rectVertexArray=${ !!rectVertexArray })`);
-}
-
-var uvTop, uvLeft, uvBottom, uvRight, uvWidth, uvHeight;
 let fb;
 
 
@@ -85,47 +77,6 @@ function updatePlayArea()
 {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    var currentAspectRatio = canvas.width / canvas.height; //2
-    var playAreaAspectRatio = MINIMUM_CAMERA_WIDTH / MINIMUM_CAMERA_HEIGHT; //0.5
-    var ratioDifference = currentAspectRatio / playAreaAspectRatio;
-
-    if (ratioDifference > 1.0) //too wide
-    {
-        uvLeft = 0 - ratioDifference * 0.5;
-        uvTop = -1;
-        uvRight = 0 + ratioDifference * 0.5;
-        uvBottom = 1;
-    }
-    else if (ratioDifference > 1.0)
-    {
-        uvLeft = -0.5;
-        uvTop = 0 - ratioDifference * 1;
-        uvRight = 0.5;
-        uvBottom = 0 + ratioDifference * 1;
-    }
-    else
-    {
-        //never used but this is the ideal UV setup these metrics are used for the game itself
-        uvLeft = -0.5;
-        uvTop = -1;
-        uvRight = 0.5;
-        uvBottom = 1;
-    }
-
-    uvWidth = uvRight - uvLeft;
-    uvHeight = uvBottom - uvTop;
-
-    //rectUVs = new Float32Array([ uvLeft, uvTop, uvLeft, uvBottom, uvRight, uvBottom, uvLeft, uvTop, uvRight, uvBottom, uvRight, uvTop ]);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareUvBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, rectUVs, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-    gl.bindVertexArray(backgroundVertexArray);
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareUvBuffer);
-    gl.vertexAttribPointer(vertexUVAttributeLocation, 2, gl.FLOAT, true, 0, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    gl.bindVertexArray(null);
 
     targetTexture = createBufferTexture(gl, canvas.width, canvas.height);
 

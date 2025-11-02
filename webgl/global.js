@@ -6,16 +6,16 @@ var MINIMUM_CAMERA_HEIGHT = 4.0;
 var MINIMUM_CAMERA_WIDTH = 2.0;
 
 const CollisionTarget = Object.freeze({
-	All: 0,
-	Ball: 1,
-	Player: 2
+	All: 'All',
+	Ball: 'Ball',
+	Player: 'Player'
 })
 
 const CollisionType = Object.freeze({
-	Bounce: 'BOUNCE',
-	Death: 'DEATH',
-	Gravity: 'GRAVITY',
-	Trigger: 'TRIGGER'
+	Bounce: 'Bounce',
+	Death: 'Death',
+	Gravity: 'Gravity',
+	Trigger: 'Trigger'
 })
 
 

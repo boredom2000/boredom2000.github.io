@@ -4,6 +4,7 @@ precision mediump float;
 precision mediump int;
 uniform int uRenderMode;
 uniform int uColorMode;
+uniform vec3 uColor;
 
 uniform vec2 uCameraPosition;
 uniform vec2 uToClipSpace;
@@ -135,7 +136,19 @@ void main() {
         // 5. Use the footprint to create a smooth, anti-aliased edge
         float alpha = smoothstep(radius - width, radius, dist) - smoothstep(radius + outlineSize.x - width, radius + outlineSize.x, dist);
 
-        finalColor += alpha * vec3(1.0, 0.0, 1.0);
+        finalColor += alpha * uColor;
+
+        if (false)
+        { //debug pink collision
+            vec2 trueShape = uSize / (uSize + uPadding);
+            vec2 trueShapeUVStart = (vec2(1.0, 1.0) - trueShape) * vec2(0.5, 0.5);
+            vec2 trueShapeUVEnd = vec2(1.0, 1.0) - trueShapeUVStart;
+
+            float insideX = step(fragmentUV.x, trueShapeUVStart.x) - step(fragmentUV.x, trueShapeUVEnd.x);
+            float insideY = step(fragmentUV.y, trueShapeUVStart.y) - step(fragmentUV.y, trueShapeUVEnd.y);
+
+            finalColor += insideX * insideY * vec3(1.0, 0.0, 1.0);
+        }
     }
 
     if (uRenderMode == 2)
@@ -151,8 +164,19 @@ void main() {
 
         float outlineX = smoothstep(radius.x - horizontalEdgeSize, radius.x, dist.x) - smoothstep(radius.x + outlineSize.x - horizontalEdgeSize, radius.x + outlineSize.x, dist.x);
         float outlineY = smoothstep(radius.y - verticalEdgeSize, radius.y, dist.y) - smoothstep(radius.y + outlineSize.y - verticalEdgeSize, radius.y + outlineSize.y, dist.y);
-        finalColor += inside.x * inside.y * max(outlineX, outlineY) * vec3(1.0, 0.0, 1.0);
+        finalColor += inside.x * inside.y * max(outlineX, outlineY) * uColor;
 
+        if (false)
+        { //debug pink collision
+            vec2 trueShape = uSize / (uSize + uPadding);
+            vec2 trueShapeUVStart = (vec2(1.0, 1.0) - trueShape) * vec2(0.5, 0.5);
+            vec2 trueShapeUVEnd = vec2(1.0, 1.0) - trueShapeUVStart;
+
+            float insideX = step(fragmentUV.x, trueShapeUVStart.x) - step(fragmentUV.x, trueShapeUVEnd.x);
+            float insideY = step(fragmentUV.y, trueShapeUVStart.y) - step(fragmentUV.y, trueShapeUVEnd.y);
+
+            finalColor += insideX * insideY * vec3(1.0, 0.0, 1.0);
+        }
     }
 
     if (uRenderMode == 3) {

@@ -31,6 +31,7 @@ const uniformToClipSize = gl.getUniformLocation(movementAndColorProgram, 'uToCli
 const uniformCameraPosition = gl.getUniformLocation(movementAndColorProgram, 'uCameraPosition');
 const uniformRatio = gl.getUniformLocation(movementAndColorProgram, 'uRatio');
 const uniformColorMode = gl.getUniformLocation(movementAndColorProgram, 'uColorMode');
+const uniformColor = gl.getUniformLocation(movementAndColorProgram, 'uColor');
 
 if (uniformPositionTime === null)
 {
@@ -121,6 +122,7 @@ renderer.renderGame = function (game, time, deltaTime)
         gl.uniform1f(uniformRotation, 0.0);
         gl.uniform1i(uniformRenderMode, 0);
         gl.uniform1i(uniformColorMode, 0);
+        gl.uniform3f(uniformColor, 1., 1., 1.);
 
         if (player != null && ball != null)
         {
@@ -150,7 +152,7 @@ renderer.renderGame = function (game, time, deltaTime)
         gl.uniform1i(uniformPositionSampler, 0);
 
         gl.bindVertexArray(backgroundVertexArray);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        // gl.drawArrays(gl.TRIANGLES, 0, 6);
 
         let adjustedTime = time / 1000.0;
 
@@ -164,7 +166,7 @@ renderer.renderGame = function (game, time, deltaTime)
             }
             gl.uniform1f(uniformRatio, clamp(hitRatio, 0.0, 1.0));
 
-            gl.uniform2f(uniformSize, ball.size[0] * 3.0, ball.size[1] * 3.0);
+            gl.uniform2f(uniformSize, ball.size[0], ball.size[1]);
             gl.uniform2f(uniformPadding, 0.2, 0.2);
 
             gl.uniform2f(uniformTranslation, ball.position[0], ball.position[1]);
@@ -183,7 +185,7 @@ renderer.renderGame = function (game, time, deltaTime)
             }
             gl.uniform1f(uniformRatio, clamp(hitRatio, 0.0, 1.0));
 
-            gl.uniform2f(uniformSize, player.size[0] * 3.0, player.size[1] * 3.0);
+            gl.uniform2f(uniformSize, player.size[0], player.size[1]);
             gl.uniform2f(uniformPadding, 0.2, 0.2);
             gl.uniform2f(uniformTranslation, player.position[0], player.position[1]);
             gl.uniform1i(uniformRenderMode, 1);
@@ -202,10 +204,12 @@ renderer.renderGame = function (game, time, deltaTime)
 
             if (rect.type == CollisionType.Death)
             {
+                gl.uniform3f(uniformColor, 1., 0., 1.);
                 gl.uniform1i(uniformColorMode, 1);
             }
             else
             {
+                gl.uniform3f(uniformColor, 1., 1., 1.);
                 gl.uniform1i(uniformColorMode, 0);
             }
 

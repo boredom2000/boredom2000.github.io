@@ -1,17 +1,6 @@
 export let game = {};
 
-const CollisionTarget = Object.freeze({
-	All: 0,
-	Ball: 1,
-	Player: 2
-})
 
-const CollisionType = Object.freeze({
-	Bounce: 'BOUNCE',
-	Death: 'DEATH',
-	Gravity: 'GRAVITY',
-	Trigger: 'TRIGGER'
-})
 
 
 class GameBall
@@ -68,6 +57,7 @@ class RectCollision
 		this.rotation = rotation;
 		this.size = size;
 		this.type = type;
+		console.log("RectCollision type=" + type);
 		this.target = target;
 		this.hitTime = -9999.0
 	}
@@ -92,13 +82,11 @@ var hitTime = 0.0;
 var timeBeforeNextCheck = 0.0;
 var timeBeforeNextRound = 0.0;
 var waitingForNextRound = false;
-var nextHitIndex = 0;
 var DELAY_BETWEEN_HITS = 1000.0;
 var DELAY_BETWEEN_ROUNDS = 2000.0;
-var HIT_INDEX_MAX = 8;
 //var ball = new GameBall([0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.1, 0.1]);
-let ball = new GameBall([2.0, -3.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
-let player = new GamePlayer([2.0, -4.0], [0.05, 0.05], [0, 0]);
+let ball = new GameBall([2.0, -3.0], [0.05, 1.5], [0.0, -1.0], [0.3, 0.3]);
+let player = new GamePlayer([2.0, -4.0], [0.2, 0.2], [0, 0]);
 
 
 var rects = [];
@@ -106,7 +94,7 @@ var rects = [];
 loadLevel('level.csv').then(levelRects => {
   console.log("Loaded and merged level rectangles:", levelRects);
   for (let r of levelRects) {
-	let collision = new RectCollision(r.position, r.size, r.rotation, CollisionTarget[r.target], CollisionType[r.type.toUpperCase()]);
+	let collision = new RectCollision(r.position, r.size, r.rotation, r.target, r.type);
 	rects.push(collision);
   }
 });
@@ -153,7 +141,7 @@ function updateGameState(time, dt)
 	{
 		var xSquareDistance = Math.pow(player.position[0] - ball.position[0], 2);
 		var ySquareDistance = Math.pow(player.position[1] - ball.position[1], 2);
-		var squareDistance = Math.pow(ball.size[0] * 2.0 + player.size[0] * 2.0, 2);
+		var squareDistance = Math.pow(ball.size[0] / 2.0 + player.size[0] / 2.0, 2);
 		if (squareDistance > (xSquareDistance + ySquareDistance))
 		{
 			var diffX = ball.position[0] - player.position[0];
@@ -164,8 +152,6 @@ function updateGameState(time, dt)
 			ball.velocity = [normalizedX * 1.5, normalizedY * 1.5];
 
 			timeBeforeNextCheck = time + DELAY_BETWEEN_HITS;
-
-			nextHitIndex = (nextHitIndex + 3) % 24;
 
 			hitTime = time / 1000.0;
 
@@ -251,7 +237,7 @@ function handleCollision(ball, rects, time, dt)
 
 		const hw = r.size[0] / 2;
 		const hh = r.size[1] / 2;
-		const radius = ball.size[0];
+		const radius = ball.size[0] / 2;
 
 		// --- 2. expand rectangle by radius ---
 		const expandedHW = hw + radius;
@@ -374,8 +360,8 @@ function handleDeath(time)
 
 function startRound()
 {
-		ball = new GameBall([2.0, -3.0], [0.05, 1.5], [0.0, -1.0], [0.1, 0.1]);
-		player = new GamePlayer([2.0, -4.0], [0.05, 0.05], [0, 0]);
+		ball = new GameBall([2.0, -3.0], [0.05, 1.5], [0.0, -1.0], [0.3, 0.3]);
+		player = new GamePlayer([2.0, -4.0], [0.2, 0.2], [0, 0]);
 		waitingForNextRound = false;
 		currentNumberOfHits = 0;
 		createTextTexture(gl, getTailingZeroNumber(currentNumberOfHits));

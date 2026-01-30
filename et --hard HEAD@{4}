@@ -1,0 +1,55 @@
+[33md3f2698[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mglowy[m[33m)[m HEAD@{0}: pull: Merge made by the 'ort' strategy.
+[33md22dd34[m HEAD@{1}: rebase (finish): returning to refs/heads/glowy
+[33md22dd34[m HEAD@{2}: rebase (pick): initial submit for glowy
+[33m6b09f94[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m, [m[1;32mdev[m[33m)[m HEAD@{3}: rebase (start): checkout main
+[33m47127ce[m[33m ([m[1;31morigin/glowy[m[33m)[m HEAD@{4}: checkout: moving from main to glowy
+[33m6b09f94[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m, [m[1;32mdev[m[33m)[m HEAD@{5}: checkout: moving from dev to main
+[33m6b09f94[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m, [m[1;32mdev[m[33m)[m HEAD@{6}: checkout: moving from main to dev
+[33m6b09f94[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m, [m[1;32mdev[m[33m)[m HEAD@{7}: checkout: moving from glowy to main
+[33m47127ce[m[33m ([m[1;31morigin/glowy[m[33m)[m HEAD@{8}: checkout: moving from main to glowy
+[33m6b09f94[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m, [m[1;32mdev[m[33m)[m HEAD@{9}: commit: added touch input to the game. switch to basic mode rendering
+[33m871875c[m HEAD@{10}: checkout: moving from glowy to main
+[33m47127ce[m[33m ([m[1;31morigin/glowy[m[33m)[m HEAD@{11}: checkout: moving from main to glowy
+[33m871875c[m HEAD@{12}: checkout: moving from glowy to main
+[33m47127ce[m[33m ([m[1;31morigin/glowy[m[33m)[m HEAD@{13}: commit: initial submit for glowy
+[33m871875c[m HEAD@{14}: checkout: moving from main to glowy
+[33m871875c[m HEAD@{15}: checkout: moving from glowy to main
+[33m871875c[m HEAD@{16}: checkout: moving from main to glowy
+[33m871875c[m HEAD@{17}: checkout: moving from glowy to main
+[33m871875c[m HEAD@{18}: checkout: moving from main to glowy
+[33m871875c[m HEAD@{19}: checkout: moving from glowy to main
+[33m871875c[m HEAD@{20}: checkout: moving from main to glowy
+[33m871875c[m HEAD@{21}: checkout: moving from glowy to main
+[33m871875c[m HEAD@{22}: checkout: moving from main to glowy
+[33m871875c[m HEAD@{23}: checkout: moving from glowy to main
+[33m871875c[m HEAD@{24}: checkout: moving from main to glowy
+[33m871875c[m HEAD@{25}: commit: made death rect really work basic also handles color properly
+[33m41dba07[m HEAD@{26}: commit: cleaning up the fluid shader
+[33m6b347e0[m HEAD@{27}: pull: Fast-forward
+[33m8f2645e[m HEAD@{28}: commit: added 3 modes of rendering, ink renders something, need to write into buffer now
+[33ma514c14[m HEAD@{29}: commit: separated game logic from rendering
+[33m2262c08[m HEAD@{30}: commit: added game loop file to separate game ad rendering
+[33m8abe54c[m HEAD@{31}: commit: removed useless uniforms in shader
+[33mcd7bb5e[m HEAD@{32}: commit: have a html that does the ink effect well
+[33m033ad4e[m HEAD@{33}: pull: Fast-forward
+[33m1fec7c4[m HEAD@{34}: commit: level now gets loaded from a csv file
+[33m9c6a26d[m HEAD@{35}: commit: added death collision and made it a different color with a new uniform on pixel shader
+[33mb1b6bff[m HEAD@{36}: commit: changed the glow as a uniform called ratio for now. now support gamepad
+[33mad2acde[m HEAD@{37}: commit: made the background a big plane that translate and scale properly with the camera movement
+[33m778df2c[m HEAD@{38}: commit: fix collision when using rotation, added the concept of collision that dont hit specific entity
+[33me62c65c[m HEAD@{39}: pull: Fast-forward
+[33m4c8d6f3[m HEAD@{40}: commit: removed some uniforms, made the camera adapt to ball and player pos
+[33mb9cfee5[m HEAD@{41}: pull: Fast-forward
+[33mba085cc[m HEAD@{42}: commit: collisions are good, need to simplify the way metrics are fed to shaders
+[33m82daab1[m HEAD@{43}: commit: added rect that can collide with ball, not working very well though
+[33m36204c8[m HEAD@{44}: pull: Fast-forward
+[33maa9469a[m HEAD@{45}: reset: moving to HEAD
+[33maa9469a[m HEAD@{46}: commit: text showing the score, score resetting on game over
+[33m7d80752[m HEAD@{47}: commit: can now stream texture
+[33maf9c0ba[m HEAD@{48}: commit: added an image...
+[33m5c4e954[m HEAD@{49}: commit: made the array 32bit to maybe fix a problem with precision....
+[33ma62b266[m HEAD@{50}: commit: made the float high quality..
+[33m3bcdf82[m HEAD@{51}: commit: polish the ball and the explosion
+[33mbee8ea9[m HEAD@{52}: commit: remove debug info
+[33mc8f2530[m HEAD@{53}: commit: added webgl game in webgl folder
+[33mf23c5ea[m HEAD@{54}: clone: from https://github.com/boredom2000/boredom2000.github.io.git

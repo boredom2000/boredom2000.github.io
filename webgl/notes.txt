@@ -1,1 +1,38 @@
 python3 -m http.server 8000
+
+
+this is a game where the player can move in any direction and is unnaffected by gravity
+there is ball that is affected by a gravity of 1
+the player and the ball can collide and will follow normal physics
+
+there are rectangles in the game that have both a CollisionType and a CollisionTarget
+
+CollisionType are:
+Bounce: the target will bounce and it hits this collision
+Death: the target will die when it hits this collision, if the ball or the player dies the game restarts
+GravityUp: the ball will be affected by a gravity that pushes it up
+GravityLeft: the ball will be affected by a gravity that pushes it left
+GravityRight: the ball will be affected by a gravity that pushes it right
+
+CollisionTarget are:
+All: both the player and the ball are affected by the collision
+Ball: only the ball is affected by the collision
+Player: only the player is affected by the collision
+
+for the coordinate system it starts on top left at x=0 and y=0. going to the right is positive x. going down is negative y.
+
+you are allowed to change the position the player and the ball spawned in game.js
+
+create a brand new level with level.csv that starts easy and become progressively harder. each cell of the csv represents a 0.5 width and a 0.5 height collision.
+
+the player and the ball have a size of 0.25 
+
+write 100 by 100 cells of level.csv  by either leaving cells empty when there is nothing or writing CollisionType-CollisionTarget on the cell to create collisions
+
+corridor should be 2.5 to 4 large
+
+open area should be around 10 by 10 
+
+only use CollisionTarget All for now
+
+use levelbase.csv as a reference on how the data should look like

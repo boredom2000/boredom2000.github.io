@@ -88,8 +88,8 @@ var waitingForNextRound = false;
 var DELAY_BETWEEN_HITS = 1000.0;
 var DELAY_BETWEEN_ROUNDS = 2000.0;
 //var ball = new GameBall([0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.1, 0.1]);
-let ball = new GameBall([2.0, -3.0], [0.05, 1.5], [0.0, -1.0], [0.3, 0.3]);
-let player = new GamePlayer([2.0, -4.0], [0.2, 0.2], [0, 0]);
+let ball = new GameBall([2.0, -2.0], [0.05, 1.5], [0.0, -1.0], [0.3, 0.3]);
+let player = new GamePlayer([2.0, -2.5], [0.2, 0.2], [0, 0]);
 
 
 var rects = [];
@@ -389,8 +389,8 @@ function handleDeath(time)
 
 function startRound()
 {
-		ball = new GameBall([2.0, -3.0], [0.05, 1.5], [0.0, -1.0], [0.3, 0.3]);
-		player = new GamePlayer([2.0, -4.0], [0.2, 0.2], [0, 0]);
+		ball = new GameBall([2.0, -2.0], [0.05, 1.5], [0.0, -1.0], [0.3, 0.3]);
+		player = new GamePlayer([2.0, -2.5], [0.2, 0.2], [0, 0]);
 		waitingForNextRound = false;
 		currentNumberOfHits = 0;
 		createTextTexture(gl, getTailingZeroNumber(currentNumberOfHits));

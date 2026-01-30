@@ -10,6 +10,7 @@ class GameBall
 		this.position = position;
 		this.velocity = velocity;
 		this.force = force;
+		this.baseForce = [force[0], force[1]];
 		this.size = size;
 		this.target = CollisionTarget.Ball;
 		this.hitTime = -9999.0
@@ -24,6 +25,8 @@ class GameBall
 	{
 		this.velocity[0] += this.force[0] * dt;
 		this.velocity[1] += this.force[1] * dt;
+		this.force[0] = this.baseForce[0];
+		this.force[1] = this.baseForce[1];
 	}
 }
 
@@ -256,6 +259,19 @@ function handleCollision(ball, rects, time, dt)
 
 		const entryTime = Math.max(tminX, tminY);
 		const exitTime = Math.min(tmaxX, tmaxY);
+
+		if (r.type == CollisionType.Gravity)
+		{
+			if (entryTime < exitTime && exitTime > 0 && entryTime < 1)
+			{
+				
+				if (ball.force && ball.baseForce && ball.baseForce[1] < 0)
+				{
+					ball.force[1] = -ball.baseForce[1];
+				}
+			}
+			continue;
+		}
 
 		// --- 4. if entry is before exit aasnd within dt (0–1), we have a hit ---
 		if (entryTime >= 0 && entryTime <= 1 && entryTime < exitTime)

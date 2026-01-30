@@ -260,14 +260,27 @@ function handleCollision(ball, rects, time, dt)
 		const entryTime = Math.max(tminX, tminY);
 		const exitTime = Math.min(tmaxX, tmaxY);
 
-		if (r.type == CollisionType.Gravity)
+		if (r.type == CollisionType.GravityUp || r.type == CollisionType.GravityLeft || r.type == CollisionType.GravityRight)
 		{
 			if (entryTime < exitTime && exitTime > 0 && entryTime < 1)
 			{
-				
-				if (ball.force && ball.baseForce && ball.baseForce[1] < 0)
+				if (!ball.force) continue;
+
+				let mag = 1.0;
+				if (ball.baseForce)
 				{
-					ball.force[1] = -ball.baseForce[1];
+					mag = Math.sqrt(ball.baseForce[0] * ball.baseForce[0] + ball.baseForce[1] * ball.baseForce[1]);
+				}
+
+				if (r.type == CollisionType.GravityUp) {
+					ball.force[0] = 0;
+					ball.force[1] = mag;
+				} else if (r.type == CollisionType.GravityLeft) {
+					ball.force[0] = -mag;
+					ball.force[1] = 0;
+				} else if (r.type == CollisionType.GravityRight) {
+					ball.force[0] = mag;
+					ball.force[1] = 0;
 				}
 			}
 			continue;

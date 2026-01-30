@@ -14,7 +14,9 @@ const CollisionTarget = Object.freeze({
 const CollisionType = Object.freeze({
 	Bounce: 'Bounce',
 	Death: 'Death',
-	Gravity: 'Gravity',
+	GravityUp: 'GravityUp',
+	GravityLeft: 'GravityLeft',
+	GravityRight: 'GravityRight',
 	Trigger: 'Trigger'
 })
 

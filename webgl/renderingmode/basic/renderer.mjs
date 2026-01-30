@@ -207,9 +207,19 @@ renderer.renderGame = function (game, time, deltaTime)
                 gl.uniform3f(uniformColor, 1., 0., 1.);
                 gl.uniform1i(uniformColorMode, 1);
             }
-            else if (rect.type == CollisionType.Gravity)
+            else if (rect.type == CollisionType.GravityUp)
             {
                 gl.uniform3f(uniformColor, 0., 0.4, 0.);
+                gl.uniform1i(uniformColorMode, 1);
+            }
+            else if (rect.type == CollisionType.GravityLeft)
+            {
+                gl.uniform3f(uniformColor, 0.4, 0.0, 0.0);
+                gl.uniform1i(uniformColorMode, 1);
+            }
+            else if (rect.type == CollisionType.GravityRight)
+            {
+                gl.uniform3f(uniformColor, 0.0, 0.0, 0.4);
                 gl.uniform1i(uniformColorMode, 1);
             }
             else
@@ -255,4 +265,3 @@ gl.enable(gl.BLEND);
 gl.blendFunc(gl.ONE, gl.ONE);
 
 updatePlayArea();
-

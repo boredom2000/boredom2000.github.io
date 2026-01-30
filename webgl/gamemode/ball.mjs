@@ -373,7 +373,7 @@ game.updateGame = function (time, dt)
     {
         player.update(dt, movementVector);
 
-        showLog("Ball Position= " + ball.position[0] + ", " + ball.position[1] +
+/*         showLog("Ball Position= " + ball.position[0] + ", " + ball.position[1] +
             "<br \>Player Position= " + player.position[0] + ", " + player.position[1] +
             "<br \>Ball Size= " + ball.size[0] + ", " + player.size[1] +
             "<br \>movementVector= " + movementVector[0] + ", " + movementVector[1] +
@@ -381,7 +381,7 @@ game.updateGame = function (time, dt)
             "<br \>time=" + time
 
 
-        );
+        ); */
     }
     if (ball != null)
     {

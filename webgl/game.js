@@ -194,7 +194,7 @@ function updateGameState(time, dt)
 		return;
 	}
 
-	playAreaHeight = Math.max(MINIMUM_CAMERA_HEIGHT, Math.abs(ball.position[1] - player.position[1]) + 1.0);
+	playAreaHeight = Math.max(MINIMUM_CAMERA_HEIGHT, Math.abs(ball.position[1] - player.position[1])) + 20.0;
 
 	playAreaWidth = (MINIMUM_CAMERA_WIDTH / MINIMUM_CAMERA_HEIGHT) * playAreaHeight;
 }

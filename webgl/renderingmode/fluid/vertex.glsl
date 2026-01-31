@@ -38,7 +38,7 @@ void main() {
       vec2 cameraRelative = worldPos - uCameraPosition;
 
       //scale position of the vertex to the size of the camera to get -1 to 1 % values
-      vec2 clipSpace = cameraRelative * uToClipSpace;
+      vec2 clipSpace = cameraRelative * uToClipSpace * vec2(0.4, -0.4);
 
       gl_Position = vec4(clipSpace, 0.0, 1.0);
     }

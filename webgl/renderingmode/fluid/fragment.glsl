@@ -17,16 +17,16 @@ uniform vec2 uPadding;
 #define trace(edge, thin) smoothstep(thin, .0, edge)
 #define ss(a,b,t) smoothstep(a,b,t)
 
-const float speed = .001;
+const float speed = .01;
 const float scale = .01;
 const float falloff = 3.;
-const float fade = .8;
-const float strength = 1.;
-const float range = 5.;
+const float fade = 5.;
+const float strength = 0.2;
+const float range = 10.;
 
 vec3 fbm(vec3 p){
   vec3 result = vec3(0.0);
-  float amplitude = 0.5;
+  float amplitude = 0.1;
   for(float i=0.0;i<3.0;i++){
     result += texture(uNoiseTexture, p.xy/amplitude).xyz * amplitude;
     amplitude /= falloff;

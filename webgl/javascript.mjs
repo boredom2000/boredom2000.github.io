@@ -1,6 +1,7 @@
-import { renderer } from '/renderingmode/basic/renderer.mjs';
+//import { renderer } from '/renderingmode/basic/renderer.mjs';
 //import { renderer } from '/renderingmode/fluid/renderer.mjs';
 //import { renderer } from '/renderingmode/glowy/renderer.mjs';
+import { renderer } from '/renderingmode/liquid/renderer.mjs';
 import { game } from '/gamemode/ball.mjs';
 
 

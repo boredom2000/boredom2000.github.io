@@ -100,7 +100,7 @@ renderer.renderGame = function (game, time, deltaTime)
         if (ball != null)
         {
             // pass A
-            gl.uniform2f(uniformSize, ball.size[0] * 3.0, ball.size[1] * 3.0);
+            gl.uniform2f(uniformSize, ball.size[0], ball.size[1]);
             gl.uniform2f(uniformPadding, 0.2, 0.2);
 
             gl.uniform2f(uniformTranslation, ball.position[0], ball.position[1]);
@@ -112,7 +112,7 @@ renderer.renderGame = function (game, time, deltaTime)
         if (player != null)
         {
             // pass A
-            gl.uniform2f(uniformSize, player.size[0] * 3.0, player.size[1] * 3.0);
+            gl.uniform2f(uniformSize, player.size[0], player.size[1]);
             gl.uniform2f(uniformPadding, 0.2, 0.2);
             gl.uniform2f(uniformTranslation, player.position[0], player.position[1]);
             gl.drawArrays(gl.TRIANGLES, 0, 6);

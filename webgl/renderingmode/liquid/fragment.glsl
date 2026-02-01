@@ -25,13 +25,12 @@ const float fade = 5.;
 const float strength = 0.2;
 const float range = 10.;
 
-vec3 fbm(vec3 p){
+vec3 color(vec2 pos){
   vec3 result = vec3(0.0);
-  float amplitude = 0.1;
-  for(float i=0.0;i<3.0;i++){
-    result += texture(uNoiseTexture, p.xy/amplitude).xyz * amplitude;
-    amplitude /= falloff;
-  }
+
+  result = cos(length(uTranslation+pos)*0.5 + iTime * 0.5 + vec3(0.0, 1.0, 2.0)) + 1.0;
+  result = normalize(result);
+
   return result;
 }
 
@@ -42,44 +41,59 @@ void main()
   //writing the previous full screen buffer into the current full screen buffer
   if (uRenderMode == 0)
   {
-    vec2 uv = fragCoord/iResolution.xy;
-    vec4 frame = texture(uSourceTexture, uv*0.999 + vec2(0.001, 0.001));
+    vec2 uv = fragCoord/iResolution.xy*1.05 - vec2(0.025, 0.025);
+    vec4 frame = texture(uSourceTexture, uv);
     float paint = max(0.0, frame.x - iTimeDelta * 0.999);
     fragColor = frame * vec4(0.999999, 0.999999, 0.999999, 1.0);
   }
+  //drawing circle
   else if (uRenderMode == 1)
   {
-    vec2 aspect = uSize + uPadding;
-    vec2 center = vec2(0.5);
-    vec2 pos = (fragmentUV - center) * aspect;
-    float dist = length(pos);
-    float radius = uSize.x * 0.5;
-    float outlineWidth = 0.12;
-    float edge = length(vec2(dFdx(dist), dFdy(dist)));
-    vec3 color = cos(length(uTranslation)*0.5 + iTime * 0.5 + vec3(0.0, 1.0, 2.0)) + 1.0;
-    float outlineFactor = smoothstep(radius - edge, radius, dist) - smoothstep(radius + outlineWidth - edge, radius + outlineWidth, dist);
-    vec3 outline = outlineFactor * color;
-    fragColor = vec4(outline, outlineFactor);
+    //example uSize = 150, and uPadding = 50
+    vec2 totalSize = uSize + uPadding; // Size of the shape being drawn including padding, example 200x100
+    vec2 center = vec2(0.5); // Define the center point in UV space (0.5, 0.5)
+    vec2 relativePositionFromCenter = fragmentUV - center; // -0.5 to 0.5 range
+    vec2 pos = relativePositionFromCenter * totalSize; // Absolute coordinate relative to center, example -100 to 100 on x axis, -50 to 50 on y axis
+    float dist = length(pos); // Calculate the absolute distance of the current fragment from the center, example 0 to 111.8
+    float radius = uSize.x * 0.5; // Determine the radius of the circle based on the x component of size, example 75
+    float edge = length(vec2(dFdx(dist), dFdy(dist))); // Calculate the gradient magnitude of the distance for anti-aliasing
+    vec3 color = color(pos); // Generate a time-varying color based on translation and time
+
+    float inside = smoothstep(radius, radius - edge, dist); // Compute the inside mask using smoothstep for anti-aliasing
+    float outlineFactor = smoothstep(radius - edge, radius, dist) - smoothstep(radius, radius + edge, dist); // Compute the outline mask using smoothstep for soft edges
+    
+    //vec3 outline = outlineFactor * color; // Apply the generated color to the outline mask
+
+    float glow = smoothstep(radius - 0.1, radius, dist) - smoothstep(radius, radius + 0.1, dist); // Additional glow effect outside the circle
+    glow = glow * glow * glow;
+    fragColor = vec4(glow * color, 1. - smoothstep(radius, radius + 0.1, dist));
+    fragColor = max(fragColor, outlineFactor);
   }
+  //drawing rectangles
   else if (uRenderMode == 2)
   {
-    float horizontalEdgeSize = abs(dFdx(fragmentUV.x));
-    float verticalEdgeSize = abs(dFdy(fragmentUV.y));
+    vec2 totalSize = uSize + uPadding; // Size of the shape being drawn including padding
+    vec2 center = vec2(0.5); // Define the center point in UV space
+    vec2 pos = (fragmentUV - center) * totalSize; // Absolute coordinate relative to center
+    vec2 dist = abs(pos); // Calculate the absolute distance from center for each axis
+    vec2 radius = uSize * 0.5; // Determine the radius (half-size) for each axis
+    vec2 edge = vec2(length(vec2(dFdx(dist.x), dFdy(dist.x))), length(vec2(dFdx(dist.y), dFdy(dist.y)))); // Calculate gradient magnitude for AA per axis
+    vec3 color = color(pos); // Generate time-varying color
 
-    vec2 trueShape = uSize / (uSize + uPadding);
-    vec2 radius = trueShape * 0.5;
-    vec2 outlineSize = vec2(0.12, 0.12) / uSize;
+    vec2 insideVec = smoothstep(radius, radius - edge, dist); // Compute inside mask per axis
+    vec2 outlineFactorVec = smoothstep(radius - edge, radius, dist) - smoothstep(radius, radius + edge, dist); // Compute outline mask per axis
+    
+    float inside = insideVec.x * insideVec.y; // Combine inside masks
+    vec2 outerVec = 1.0 - smoothstep(radius, radius + edge, dist); // Compute mask for outline bounds
+    float outlineFactor = max(outlineFactorVec.x * outerVec.y, outlineFactorVec.y * outerVec.x); // Combine outline masks
 
-    vec2 dist = abs(fragmentUV - vec2(0.5, 0.5));
-
-    vec2 inside = vec2(1., 1.) - smoothstep(radius , radius + outlineSize + vec2(horizontalEdgeSize, verticalEdgeSize), dist);
-
-    vec3 color = cos(length(uTranslation)*0.5 + iTime * 0.5 + vec3(0.0, 1.0, 2.0)) + 1.0;
-    float outlineX = smoothstep(radius.x - horizontalEdgeSize, radius.x, dist.x) - smoothstep(radius.x + outlineSize.x - horizontalEdgeSize, radius.x + outlineSize.x, dist.x);
-    float outlineY = smoothstep(radius.y - verticalEdgeSize, radius.y, dist.y) - smoothstep(radius.y + outlineSize.y - verticalEdgeSize, radius.y + outlineSize.y, dist.y);
-    vec3 outline = inside.x * inside.y * max(outlineX, outlineY) * color;
-    fragColor=vec4(outline,inside.x * inside.y);
-    //fragColor=vec4(1.,0.,0.,1.);
+    vec2 glowVec = smoothstep(radius - 0.1, radius, dist) - smoothstep(radius, radius + 0.1, dist); // Compute glow gradient per axis
+    vec2 glowMask = 1.0 - smoothstep(radius, radius + 0.1, dist); // Compute mask to limit glow extension
+    float glow = max(glowVec.x * glowMask.y, glowVec.y * glowMask.x); // Combine axis glows
+    glow = glow * glow * glow; // Apply cubic falloff to glow
+    fragColor = vec4(glow * color, glow); // Set fragment color with glow
+    fragColor = max(fragColor, outlineFactor); // Overlay the solid outline
+    fragColor = mix(fragColor, vec4(0.0, 0.0, 0.0, 1.0), inside);
   }
   else
   {
